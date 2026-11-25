@@ -1,0 +1,831 @@
+[
+ {
+  "id": "augustine-trent",
+  "cat": "continuity",
+  "status": "Textual comparison",
+  "title": "Was Augustine’s account of concupiscence condemned at Trent?",
+  "question": "How do Augustine’s remarks about the law of sin apply to second-first motions after a baptized person loses charity through mortal sin?",
+  "settled": "Trent V.5 teaches that baptism truly remits the guilt of original sin and that the remaining inclination is called sin because it comes from sin and inclines to sin. Trent VI.7 describes justification as remission and interior renewal. VI.15 and canons 27–28 teach that mortal sin forfeits justifying grace, while faith may remain without charity.",
+  "open": "Whether a particular second-first motion, here meaning an incipient movement with imperfect advertence or involvement of the will, involves any voluntary consent is a question about the act. Augustine’s terminology and the later scholastic classification must be compared with care.",
+  "reading": "Contra Iulianum V.3.8 calls concupiscence sin, punishment of sin, and cause of sin. VI.16.49, 17.51 and 19.60–61 explain that baptism removes its guilt while the disorder remains. De nuptiis et concupiscentia I.23.25 distinguishes remaining concupiscence from the sin of consenting. After post-baptismal mortal sin, loss of charity deprives the will of its habitual ordering to God as supernatural end. Its conformity to the law of fleshly concupiscence describes this disordered orientation insofar as the will yields to it. Involuntary impulses remain distinct from culpable acts, and imperfect consent alone cannot establish a new mortal sin. The question concerns motions in the baptized who have lost charity. The standing inclination and the remitted guilt of original sin are distinct issues.",
+  "refs": [
+   "792",
+   "799",
+   "808",
+   "837",
+   "838",
+   "1074",
+   "1075",
+   "1080"
+  ],
+  "related": []
+ },
+ {
+  "id": "cum-occasione-augustine",
+  "cat": "censure",
+  "status": "Censured senses",
+  "title": "Cum occasione: five distinctions in reading Augustine",
+  "question": "Which accounts of grace, freedom and redemption can an Augustinian affirm after Innocent X’s five censures?",
+  "settled": "I. God’s commands can exceed unaided strength, while the just are not left without enabling help (De natura et gratia 43.50 and Trent VI.11). II. The efficacy of a particular divine aid is distinct from a universal denial that interior grace can be resisted (De correptione et gratia 8.17 and 12.33–34, read with Trent VI.5 and canon 4). III. The certainty of God’s efficacious action is distinct from a necessity that makes absence of external coercion the sole condition of freedom for merit and demerit (De gratia et libero arbitrio 16.32–17.33 and Trent VI, canon 4). IV. The beginning of faith itself is a gift. The possibility of resisting prevenient interior grace is compatible with that priority (De praedestinatione sanctorum 1.2–3.7 and Trent VI, canons 3–4). V. Christ’s death for all is distinct from the actual communication of its benefits (Trent VI.3). Augustine’s Enchiridion 103 offers a reading of 1 Timothy 2:4 about God’s saving will. It addresses a different question from whom Christ died for.",
+  "open": "A passage supplied from Jansen’s Augustinus, tome II, book III, chapter 1, distinguishes having a power to act from having every aid needed for the act, then questions whether that sufficient aid is the true grace of Christ at issue. The edition, book heading, Latin wording and context need to be checked. Whether the aid Jansen concedes is genuinely interior, supernatural and resistible is the substantive question. Ad sacram attributes the condemned sense to Jansen. Comparing his exact formulations with the censured propositions remains a historical inquiry.",
+  "reading": "A form of hypothetical universalism can pass the test of proposition V if it affirms that Christ truly died for everyone and distinguishes that universal scope from the particular application of the merits of his death. The fifth censure gives the note of heresy to restriction of Christ’s death for salvation to the predestined alone. Compatibility on this point leaves the model’s other claims about grace and freedom to be tested separately.",
+  "refs": [
+   "795",
+   "797",
+   "803",
+   "813",
+   "814",
+   "1092",
+   "1093",
+   "1094",
+   "1095",
+   "1096",
+   "1098"
+  ],
+  "related": []
+ },
+ {
+  "id": "de-auxiliis",
+  "cat": "open",
+  "status": "Open question",
+  "title": "Grace and free will (Thomists and Molinists)",
+  "question": "How does efficacious grace move the will without destroying its freedom?",
+  "settled": "Grace is necessary for every salutary act, and the free will moved by God truly cooperates and can refuse (Trent).",
+  "open": "Báñez attributes the infallible efficacy of a certain aid to divine motion and allows a different kind of interior aid to be refused. Molina says equal aids can receive different responses. His account of middle knowledge explains how God knows what a free person would do.",
+  "reading": "Paul V closed the proceedings and forbade the disputants to censure each other. Innocent X disallows the circulating acts and the alleged condemnation of Molina. The comparison with Quesnel turns on the genuine power to dissent when moved by grace.",
+  "refs": [
+   "1090",
+   "1097",
+   "1093",
+   "797",
+   "814",
+   "815"
+  ],
+  "related": []
+ },
+ {
+  "id": "hope-for-all",
+  "cat": "open",
+  "status": "Disputed",
+  "title": "May we hope that all are saved?",
+  "question": "Is it legitimate to hope that in fact no human being is damned?",
+  "settled": "Hell exists and is eternal; those who die in actual mortal sin go there at once (Benedict XII). The doctrine that the punishment of the damned will end, and that all will be restored, was condemned.",
+  "open": "The Church has never declared any individual to be in hell. Some theologians, notably Hans Urs von Balthasar, argued that one may hope all will be saved; critics answer that Scripture and the Fathers speak of the damned as real, and that such hope weakens the call to conversion.",
+  "reading": "A teaching that all will certainly be saved is excluded. A prayerful hope for each person is common ground; whether one may hope that hell is in fact empty is debated among orthodox theologians.",
+  "refs": [
+   "211",
+   "530",
+   "531",
+   "457"
+  ],
+  "related": []
+ },
+ {
+  "id": "limbo",
+  "cat": "open",
+  "status": "Open question",
+  "title": "Limbo of unbaptized infants",
+  "question": "What happens to infants who die without baptism?",
+  "settled": "Baptism is necessary for salvation, infants are to be baptized, and original sin is real and transmitted (Trent). Those who die with original sin alone do not enjoy the vision of God by their own claim (Innocent III, Florence). Pius VI condemned calling limbo a Pelagian fable.",
+  "open": "Limbo itself was never defined. The International Theological Commission (2007) found serious grounds to hope these infants are saved by means known to God, while calling limbo a still-possible opinion.",
+  "reading": "Pius VI condemned an accusation against a common opinion, not a denial of limbo as such. Both limbo and hope for these infants can be held without contradicting any definition.",
+  "refs": [
+   "410",
+   "693",
+   "791",
+   "1526"
+  ],
+  "related": [
+   "itc"
+  ]
+ },
+ {
+  "id": "ensoulment",
+  "cat": "open",
+  "status": "Open question",
+  "title": "When is the rational soul infused?",
+  "question": "At conception, or at a later stage of development?",
+  "settled": "Abortion is gravely wrong from conception. Innocent XI condemned the claims that abortion before animation is permitted and that it is probable the fetus lacks a rational soul until birth.",
+  "open": "The precise moment of ensoulment. The 1974 Declaration on Procured Abortion expressly leaves that philosophical question open, and argues that even a probable human life may not be taken.",
+  "reading": "The moral conclusion does not depend on the answer, so the question can remain open without weakening the teaching on abortion.",
+  "refs": [
+   "1184",
+   "1185",
+   "1890"
+  ],
+  "related": [
+   "abort",
+   "ev"
+  ]
+ },
+ {
+  "id": "evolution",
+  "cat": "open",
+  "status": "Disputed",
+  "title": "Evolution and the unity of the human race",
+  "question": "How far may Catholics accept biological evolution and multiple first ancestors?",
+  "settled": "The human soul is created directly by God. Original sin comes from a real sin of Adam and is passed to all (Trent). Pius XII allowed research on the evolution of the body.",
+  "open": "Pius XII said polygenism could not be held because it was not apparent how it could be reconciled with the doctrine of original sin. Later theologians have proposed ways to reconcile a large early population with a single first couple or a single original sin; none has been approved or condemned.",
+  "reading": "The fixed point is original sin as a real event at the origin of humanity and passed on to all; models that keep that are argued for in good faith, and the question is not closed.",
+  "refs": [
+   "2327",
+   "2328",
+   "789"
+  ],
+  "related": []
+ },
+ {
+  "id": "mediatrix",
+  "cat": "open",
+  "status": "Open question",
+  "title": "Mary as Mediatrix of all graces",
+  "question": "Is every grace given through Mary's intercession, and should this be defined?",
+  "settled": "Mary cooperated in a unique, subordinate way in the work of her Son, and Christ is the one mediator.",
+  "open": "Leo XIII and Pius X used mediatrix language, and there were twentieth-century movements for a definition. The 2025 note Mater Populi Fidelis urges care with the title and rules out any sense that would make Mary a source of grace alongside Christ.",
+  "reading": "An undefined pious teaching, held in a sense subordinate to Christ's mediation. Its future definition is not expected.",
+  "refs": [
+   "1940a",
+   "1978a"
+  ],
+  "related": [
+   "mpf"
+  ]
+ },
+ {
+  "id": "papal-heresy",
+  "cat": "open",
+  "status": "Open question",
+  "title": "Could a pope teach heresy as a private person?",
+  "question": "What happens if a pope, not speaking ex cathedra, teaches something heretical?",
+  "settled": "The Pope is infallible when he defines a doctrine of faith or morals ex cathedra under the conditions Vatican I set out.",
+  "open": "Whether a pope can fall into personal heresy, and what would follow, was argued by Bellarmine, Cajetan, Suárez and John of St. Thomas, who reached different answers. The case of Honorius is the usual historical test. The old canonists' exception (Gratian, D. 40 c. 6: the pope is judged by no one \"unless he is found to have strayed from the faith\") and the deposition of Gregory VI at Sutri in 1046 are the usual historical starting points; see the question on Sutri.",
+  "reading": "Vatican I's definition is limited by its conditions, so the question it leaves untouched remains a matter for theologians and canonists.",
+  "refs": [
+   "1839",
+   "251",
+   "252",
+   "253",
+   "B17"
+  ],
+  "related": []
+ },
+ {
+  "id": "inerrancy",
+  "cat": "continuity",
+  "status": "Disputed",
+  "title": "The scope of biblical inerrancy",
+  "question": "Is Scripture free from error in everything it asserts, or only in matters touching salvation?",
+  "settled": "All of Scripture is inspired and has God as author (Trent, Vatican I). Leo XIII and Benedict XV rejected restricting inspiration or inerrancy to faith and morals.",
+  "open": "Dei Verbum 11 speaks of the truth God wanted put in Scripture for the sake of our salvation. Some read this as limiting inerrancy to salvific matters; others read it as describing the purpose of the whole truth of Scripture without limiting it.",
+  "reading": "The continuity reading takes the phrase as qualifying the kind of truth, not the extent of inerrancy, since an explicit reversal of Leo XIII and Benedict XV is not stated. Attention to literary genres (Pius XII) settles many apparent errors.",
+  "refs": [
+   "783",
+   "1787",
+   "1951",
+   "1952",
+   "2186",
+   "2187",
+   "2294"
+  ],
+  "related": [
+   "dv"
+  ]
+ },
+ {
+  "id": "women-deacons",
+  "cat": "open",
+  "status": "Open question",
+  "title": "Women and the diaconate",
+  "question": "Can women receive the diaconate as a degree of holy orders?",
+  "settled": "Priestly ordination is reserved to men, to be held definitively (Ordinatio Sacerdotalis).",
+  "open": "Ordinatio Sacerdotalis addresses the priesthood only. Francis set up two study commissions (2016 and 2020). A summary of the second, chaired by Cardinal Petrocchi, was released by Leo XIV in December 2025: it concluded against admitting women to the diaconate as a degree of holy orders, but said explicitly that this was not a definitive judgment.",
+  "reading": "Current judgment is negative but not definitive; historical deaconesses are generally judged not to have received the same sacrament as deacons.",
+  "refs": [],
+  "related": [
+   "os",
+   "petrocchi"
+  ]
+ },
+ {
+  "id": "honorius",
+  "cat": "fact",
+  "status": "Historical question",
+  "title": "Pope Honorius I and monothelitism",
+  "question": "Did Honorius teach the heresy of one will in Christ?",
+  "settled": "Constantinople III defines two natural wills and operations in Christ. It rejects Honorius’s correspondence and says he confirmed Sergius’s impious doctrines. Leo II confirms the anathema.",
+  "open": "John IV understood Honorius to mean that Christ had no divided or sinful human will. Leo’s letter to Spain describes negligence. The printed Latin and Greek of the confirmation differ in their description of Honorius’s agency.",
+  "reading": "The letters instruct bishops on a controversy. Their purpose and addressees give no evidence of a definition binding the whole Church under the criteria in Pastor aeternus.",
+  "refs": [
+   "251",
+   "252",
+   "253",
+   "291",
+   "1839"
+  ],
+  "related": []
+ },
+ {
+  "id": "liberius",
+  "cat": "fact",
+  "status": "Historical question",
+  "title": "Pope Liberius and the Arian crisis",
+  "question": "Did Liberius sign a semi-Arian formula while in exile?",
+  "settled": "Anastasius I counted Liberius among those who suffered exile for the Nicene faith.",
+  "open": "Some ancient sources say he signed an ambiguous creed at Sirmium under duress to return to Rome; the authenticity of the letters involved is disputed. During his exile the emperor Constantius had Felix II installed at Rome; the Annuario Pontificio lists Felix as an antipope, though a later cult honoured him as a martyr pope.",
+  "reading": "Even on the hostile account, a signature under coercion is not a definition binding the Church.",
+  "refs": [
+   "93"
+  ],
+  "related": []
+ },
+ {
+  "id": "jansen-fact",
+  "cat": "fact",
+  "status": "Settled (dogmatic fact)",
+  "title": "Jansen's five propositions: the question of fact",
+  "question": "Can the Church judge that a book actually teaches a condemned sense?",
+  "settled": "Innocent X condemned five propositions; Alexander VII declared they are taken from Jansen's Augustinus and condemned in his sense; Clement XI ruled that respectful silence does not satisfy the obedience owed.",
+  "open": "The historical relation of the wording of the propositions to the book and the precise theological grade of this particular judgment. The 1998 commentary gives examples of definitive judgments connected to revelation by historical necessity.",
+  "reading": "Alexander VII attributed the condemned sense to Jansenius. Clement XI then required the faithful to reject that sense sincerely in word and heart.",
+  "refs": [
+   "1092",
+   "1096",
+   "1098",
+   "1350"
+  ],
+  "related": [
+   "atf"
+  ]
+ },
+ {
+  "id": "baius",
+  "cat": "censure",
+  "status": "Censures applied respectively",
+  "title": "Michael du Bay (Baius): the 79 propositions",
+  "question": "What was censured about concupiscence and the gratuity of grace?",
+  "settled": "Pius V condemns the propositions under several censures applied respectively. Trent says that concupiscence remains after baptism and cannot harm those who withhold consent and resist with Christ’s grace.",
+  "open": "The Comma Pianum affects whether the strict and proper sense specifies the censure or the concession about possible defenses. The bull gives no individual censure for propositions 74 or 75.",
+  "reading": "Proposition 75 calls the felt impulse a transgression while denying imputation as sin. Proposition 21 makes participation in divine nature due to original integrity. Case A5 tests these distinct claims against Trent and Humani generis.",
+  "refs": [
+   "792",
+   "1021",
+   "1024",
+   "1026",
+   "1074",
+   "1075",
+   "1080",
+   "2318"
+  ],
+  "related": []
+ },
+ {
+  "id": "eckhart",
+  "cat": "censure",
+  "status": "Orthodox sense possible",
+  "title": "Meister Eckhart: the 28 articles",
+  "question": "Is Eckhart's mystical language heretical?",
+  "settled": "John XXII condemned 17 articles as heretical and 11 others as evil-sounding, rash and suspect of heresy.",
+  "open": "The lesser censure on the eleven implies that with explanation they could bear a Catholic sense. Eckhart had declared before his death that he retracted anything that could be read in a heretical sense.",
+  "reading": "The graded censures show that the bull did not judge every article equally. His language remains open to orthodox interpretation where it is not one of the heretical articles in its condemned sense.",
+  "refs": [
+   "501",
+   "528",
+   "529"
+  ],
+  "related": []
+ },
+ {
+  "id": "quesnel",
+  "cat": "censure",
+  "status": "Censures applied respectively",
+  "title": "Quesnel: the 101 propositions of Unigenitus",
+  "question": "What did Clement XI censure in propositions that echo Augustine or commend Scripture reading?",
+  "settled": "Clement XI condemned all 101 propositions with censures applied respectively. The bull especially names renewals of Jansenius’s propositions in the sense already condemned. It also condemns Quesnel’s book.",
+  "open": "The bull gives no individual notes. Gres-Gayer reports that Clement initially suspended judgment on proposition 13. It remained in the promulgated list. The precise grounds for that censure and the one on proposition 80 remain open in this review.",
+  "reading": "A sentence may have an orthodox sense in isolation and carry a censurable implication in a particular gloss or argument. For proposition 13, the efficacy of a particular saving aid and a denial of all resistance to interior grace are distinct claims. For proposition 80, the general encouragement of Scripture reading and the exclusion of ecclesial oversight are distinct claims. Quesnel’s defense distinguishes effects of grace, and his gloss on Acts 8 appeals to the Church’s teachers. Those texts complicate the proposed adverse readings. Case A3 examines the evidence, and the bull itself does not assign either proposition an individual rationale.",
+  "refs": [
+   "1351",
+   "1362",
+   "1363",
+   "1373",
+   "1379",
+   "1383",
+   "1429",
+   "1430",
+   "1440",
+   "1451"
+  ],
+  "related": []
+ },
+ {
+  "id": "fenelon",
+  "cat": "censure",
+  "status": "Orthodox sense possible",
+  "title": "Fénelon and pure love",
+  "question": "Was the ideal of disinterested love of God condemned?",
+  "settled": "Innocent XII condemned 23 propositions from Fénelon's Maxims of the Saints, in their obvious sense or in the sense of the opinions connected with them.",
+  "open": "Fénelon submitted at once. Loving God for himself, above all and without self-seeking, remains the teaching of the saints.",
+  "reading": "What was condemned is the claim that a perfect soul can give up the hope of salvation as a motive, not the primacy of charity.",
+  "refs": [
+   "1327",
+   "1349"
+  ],
+  "related": []
+ },
+ {
+  "id": "rosmini",
+  "cat": "censure",
+  "status": "Orthodox sense possible",
+  "title": "Antonio Rosmini: the forty propositions",
+  "question": "Do the forty propositions condemned in 1887 express Rosmini's teaching?",
+  "settled": "The propositions are condemned in an idealist or ontologist sense contrary to the faith.",
+  "open": "Nothing remains doctrinally open: the Congregation for the Doctrine of the Faith judged in 2001 that the concerns behind the decree are superseded when the texts are read within his system.",
+  "reading": "An explicit modern ruling that a condemned proposition and an author's true meaning can differ. Rosmini was beatified in 2007.",
+  "refs": [
+   "1891",
+   "1930"
+  ],
+  "related": [
+   "rosmini"
+  ]
+ },
+ {
+  "id": "luther-33",
+  "cat": "censure",
+  "status": "Condemned in the author's sense",
+  "title": "Luther's proposition 33: burning heretics",
+  "question": "Did Leo X teach that burning heretics is God's will?",
+  "settled": "Exsurge Domine condemned 41 propositions respectively as heretical, scandalous, false, offensive to pious ears or misleading, without assigning censures one by one.",
+  "open": "Which censure applies to proposition 33 was never specified, and it may be among the lighter ones.",
+  "reading": "The usual reading is that the condemnation defended the Church's right to impose penalties, a right Luther denied, not burning as such. John Paul II later asked forgiveness for the use of violence in the service of truth, and Dignitatis Humanae excludes coercion of conscience.",
+  "refs": [
+   "773",
+   "781"
+  ],
+  "related": [
+   "dh"
+  ]
+ },
+ {
+  "id": "vernacular",
+  "cat": "censure",
+  "status": "Censure qualified by its wording",
+  "title": "Pistoia and the vernacular liturgy",
+  "question": "What did Pius VI censure in Pistoia’s proposal for public worship?",
+  "settled": "Pistoia proposed a bilingual ritual and manual. Pius VI censured the charge of acting against apostolic practice and God’s designs as applied to bringing the vernacular into liturgical prayers.",
+  "open": "The practical use intended for the local ritual and manual needs further documentary evidence. Proposition 67 addresses a separate claim about the obligation to read Scripture.",
+  "reading": "Trent rejects an exclusive obligation to say Mass in the vernacular. Vatican II retains Latin and permits a wider use of the vernacular under competent authority.",
+  "refs": [
+   "946",
+   "956",
+   "1566",
+   "1567"
+  ],
+  "related": [
+   "sc"
+  ]
+ },
+ {
+  "id": "syllabus-80",
+  "cat": "censure",
+  "status": "Condemned in the author's sense",
+  "title": "Syllabus 80: progress, liberalism and modern civilization",
+  "question": "Does the Church reject all modern progress?",
+  "settled": "Pius IX condemned the proposition that the Pope can and should reconcile himself with progress, liberalism and modern civilization.",
+  "open": "Every Syllabus proposition must be read in the source it cites. Proposition 80 comes from the 1861 allocution Iamdudum cernimus, which used these words for the anticlerical program of the time.",
+  "reading": "Condemned is reconciliation with that program, not with genuine progress, which Gaudium et Spes and the social encyclicals welcome.",
+  "refs": [
+   "1700",
+   "1780"
+  ],
+  "related": [
+   "gs"
+  ]
+ },
+ {
+  "id": "americanism",
+  "cat": "censure",
+  "status": "Condemned in the author's sense",
+  "title": "Americanism",
+  "question": "Were American Catholics condemned for heresy?",
+  "settled": "Leo XIII rejected the opinions that the Church should soften doctrine to win converts, that external guidance is less needed under the Spirit, and that active virtues outrank passive ones.",
+  "open": "Leo said he was not condemning the American Church or its legitimate customs. Cardinal Gibbons replied that no educated American Catholic held the opinions described.",
+  "reading": "A condemnation of opinions as described, binding on anyone who holds them, but historians often call it a phantom heresy.",
+  "refs": [
+   "1967",
+   "1976"
+  ],
+  "related": []
+ },
+ {
+  "id": "unam-sanctam",
+  "cat": "censure",
+  "status": "Definition limited to its final sentence",
+  "title": "Unam Sanctam and the two swords",
+  "question": "Is the whole of Boniface VIII's bull, including the temporal power of the Pope over kings, defined?",
+  "settled": "The final sentence declares that subjection to the Roman Pontiff is necessary for salvation for every human creature.",
+  "open": "The argument about spiritual and temporal swords is the reasoning of the bull, which theologians commonly do not count as part of the definition.",
+  "reading": "The defined sentence repeats the teaching on the necessity of the Church (compare Florence), read with the doctrine of invincible ignorance.",
+  "refs": [
+   "468",
+   "469",
+   "714"
+  ],
+  "related": []
+ },
+ {
+  "id": "filioque",
+  "cat": "formula",
+  "status": "Formula accepted in an orthodox sense",
+  "title": "The Filioque and the Greek formula",
+  "question": "Do the Latin \"and the Son\" and the Greek \"through the Son\" contradict each other?",
+  "settled": "The Holy Spirit proceeds eternally from the Father and the Son as from one principle (Lyons II, Florence).",
+  "open": "Florence accepted that the Greek Fathers' formula \"from the Father through the Son\" expresses the same faith. Eastern Catholics recite the creed without the Filioque.",
+  "reading": "A formula condemned in one sense can be the Church's own in another; what matters is the sense, not the wording.",
+  "refs": [
+   "460",
+   "691",
+   "1084"
+  ],
+  "related": [
+   "iuf"
+  ]
+ },
+ {
+  "id": "christology-east",
+  "cat": "formula",
+  "status": "Formula accepted in an orthodox sense",
+  "title": "\"One nature of the Word incarnate\" and the Eastern churches",
+  "question": "Can churches that reject Chalcedon's wording hold the Chalcedonian faith?",
+  "settled": "Christ is one person in two natures, without confusion or separation (Chalcedon).",
+  "open": "Constantinople II itself accepts Cyril's phrase \"one nature of the Word made flesh\" in the sense the Fathers meant. Common declarations with Oriental Orthodox and Assyrian churches since 1973 build on that.",
+  "reading": "Agreement in faith under different formulas, judged by the sense; the definitions of Ephesus and Chalcedon stay the measure.",
+  "refs": [
+   "111a",
+   "113",
+   "148",
+   "220"
+  ],
+  "related": [
+   "assyr"
+  ]
+ },
+ {
+  "id": "outside-church",
+  "cat": "continuity",
+  "status": "Continuity reading available",
+  "title": "Outside the Church no salvation",
+  "question": "How do Florence and Vatican II fit together?",
+  "settled": "Florence requires union with the Church before death. The Holy Office in 1949 explains that actual incorporation as a member and union by desire are distinct. In invincible ignorance that desire can be implicit.",
+  "open": "How the saving grace of Christ reaches persons who have not heard the Gospel and how supernatural faith is present in those cases.",
+  "reading": "The Holy Office requires that the desire be formed by perfect charity and that implicit desire be accompanied by supernatural faith. Lumen Gentium cites the letter in its account of those who have yet to receive the Gospel.",
+  "refs": [
+   "469",
+   "714",
+   "796",
+   "1379",
+   "1677",
+   "2286",
+   "LG14",
+   "LG16"
+  ],
+  "related": [
+   "na",
+   "di",
+   "ur"
+  ]
+ },
+ {
+  "id": "usury",
+  "cat": "continuity",
+  "status": "Principle kept, application changed",
+  "title": "Usury and modern interest",
+  "question": "The Church condemned profit on loans. Why is interest accepted now?",
+  "settled": "Taking profit from a loan by reason of the loan itself is unjust (Benedict XIV, Vix pervenit).",
+  "open": "How far extrinsic titles (lost profit, risk, the productive use of money in a market economy) justify interest. Lateran V had already approved modest charges by the Mountains of Piety.",
+  "reading": "The principle stands; what changed is the economic reality of money and credit, which makes titles to compensation ordinary. Exploitative lending remains condemned.",
+  "refs": [
+   "365",
+   "739",
+   "1475",
+   "1476",
+   "1477"
+  ],
+  "related": []
+ },
+ {
+  "id": "pbc",
+  "cat": "continuity",
+  "status": "Prudential, partly superseded",
+  "title": "The Biblical Commission decrees (1905–1915)",
+  "question": "Must Catholics hold Mosaic authorship of the Pentateuch, the historicity of Genesis 1–3 as decreed, and the authenticity of the Johannine Comma?",
+  "settled": "Facts touching the foundations of the faith (creation, the unity of the human race, original sin) are to be held. Pius X required obedience to the Commission's decisions.",
+  "open": "The 1927 Holy Office clarification allowed scholars to examine the Comma; in 1955 the Commission's own secretaries said the early decrees retain force only where they touch faith and morals. The Commission was later restructured as an advisory body.",
+  "reading": "These were prudential safeguards in a crisis, not definitions; where they touch doctrine they still bind, elsewhere scholarship is free.",
+  "refs": [
+   "1997",
+   "2000",
+   "2113",
+   "2121",
+   "2123",
+   "2198"
+  ],
+  "related": [
+   "dv"
+  ]
+ },
+ {
+  "id": "pisan",
+  "cat": "fact",
+  "status": "Historical question",
+  "title": "The Pisan popes and the deposition of John XXIII",
+  "question": "Were Alexander V and John XXIII true popes, and did Constance validly depose John XXIII?",
+  "settled": "Martin V was the one certain pope from 1417, and his election ended the schism. The Annuario Pontificio lists the Roman line (Gregory XII) as legitimate, and Alexander V and John XXIII as antipopes; Angelo Roncalli took the name John XXIII in 1958.",
+  "open": "The Church never defined which line was legitimate between 1378 and 1417; the Roman list is a historical judgment, revised as late as the twentieth century, and the popes who later took the names Alexander VI and VII counted Alexander V. Martin V's own register calls Alexander V \"our predecessor\" and says John XXIII \"succeeded him in the papacy\" and was deposed \"from the papacy\" (C10), and his bull of session 42 calls the deposition \"canonical\" (C8). Gregory XII, for his part, convoked the council before resigning (C2), which on the Roman reading is what gave it authority. Other documents of Martin V's pontificate are more guarded: the Synod of Tortosa (1429), under his legate, says the deposed claimants lost the right \"they claimed to have,\" and that Gregory XII renounced \"whatever right belonged to him\" (C15).",
+  "reading": "Constance ended the schism on any reading: if the Roman line was legitimate, Gregory XII convoked the council and resigned; if the Pisan line was, John XXIII had convoked it and was deposed after he fled it, a deposition Martin V called canonical. Either way Martin V's election is certain and the acts that produced it were confirmed by him. Martin's chancery language shows how Constance itself saw the Pisan popes; it does not settle the historical question, which remains open to argument.",
+  "refs": [
+   "C2",
+   "C8",
+   "C10",
+   "C11",
+   "C13",
+   "C15"
+  ],
+  "related": []
+ },
+ {
+  "id": "religious-liberty",
+  "cat": "continuity",
+  "status": "Disputed",
+  "title": "Religious liberty",
+  "question": "Does Dignitatis Humanae contradict Quanta Cura and the Syllabus?",
+  "settled": "Indifferentism is condemned; there is a moral duty to seek and embrace the true religion. Dignitatis Humanae says it leaves that traditional doctrine untouched.",
+  "open": "Whether a civil right to immunity from coercion is compatible with the nineteenth-century condemnations. Some see a real change of teaching; traditionalist critics see a rupture; others see development.",
+  "reading": "The earlier texts condemned a supposed right to error and the separation of morality from religion. Dignitatis Humanae teaches civil immunity within public order and keeps the duty toward the truth. Leo XIII already allowed tolerance of other worships for the common good. Benedict XVI chose this as his example of reform in continuity.",
+  "refs": [
+   "1690",
+   "1715",
+   "1777",
+   "1778",
+   "1779",
+   "1874"
+  ],
+  "related": [
+   "dh",
+   "b16"
+  ]
+ },
+ {
+  "id": "subsistit",
+  "cat": "continuity",
+  "status": "Continuity reading available",
+  "title": "\"Subsists in\" (Lumen Gentium 8)",
+  "question": "Did Vatican II stop identifying the Church of Christ with the Catholic Church?",
+  "settled": "There is one Church of Christ; Pius XII taught that the Mystical Body is the Catholic Church.",
+  "open": "Why the Council wrote subsists in instead of is. Some read it as allowing the Church of Christ to exist elsewhere.",
+  "reading": "The Congregation for the Doctrine of the Faith (2007) says it means the Church of Christ continues to exist fully only in the Catholic Church, while acknowledging elements of the Church outside its visible bounds.",
+  "refs": [
+   "2286"
+  ],
+  "related": [
+   "lg",
+   "resp07",
+   "di"
+  ]
+ },
+ {
+  "id": "collegiality",
+  "cat": "continuity",
+  "status": "Continuity reading available",
+  "title": "Collegiality and the primacy",
+  "question": "Does the college of bishops share supreme power in a way that limits the Pope?",
+  "settled": "The Pope has full, supreme and universal power that he can always exercise freely (Vatican I).",
+  "open": "Lumen Gentium 22 says the college with its head is also a subject of supreme power. Theologians debate whether there are one or two subjects of supreme power.",
+  "reading": "The Preliminary Note of Explanation, added by order of Paul VI, says the college never acts without its head and that the Pope's power is untouched. That is the authoritative key.",
+  "refs": [
+   "1826",
+   "1831",
+   "1839"
+  ],
+  "related": [
+   "lg"
+  ]
+ },
+ {
+  "id": "death-penalty",
+  "cat": "continuity",
+  "status": "Disputed",
+  "title": "The death penalty",
+  "question": "Is the death penalty now taught to be wrong in itself?",
+  "settled": "Innocent III required the Waldensians to accept that civil power may impose death without mortal sin. The Catechism of 1992/1997 restricted it to cases of absolute necessity.",
+  "open": "The 2018 revision calls it inadmissible because it attacks the dignity of the person. Whether that states an absolute moral norm or a judgment about present conditions is disputed.",
+  "reading": "Read strictly in continuity, 2267 cannot mean the penalty is intrinsically evil, since that would contradict earlier teaching. It is taken as a judgment that today it is not needed and does not serve the purposes of punishment.",
+  "refs": [
+   "425"
+  ],
+  "related": [
+   "dp",
+   "ev",
+   "ft"
+  ]
+ },
+ {
+  "id": "amoris",
+  "cat": "continuity",
+  "status": "Disputed",
+  "title": "Amoris Laetitia and Communion for the remarried",
+  "question": "May the divorced and civilly remarried living as spouses receive Communion?",
+  "settled": "Marriage is indissoluble (Trent). Some acts are intrinsically evil (Veritatis Splendor). Familiaris Consortio 84 required separation or continence.",
+  "open": "Chapter 8 and footnote 351 suggest sacramental help in some cases; the Buenos Aires bishops' guidelines, approved by Francis and published in the Acta Apostolicae Sedis, allow access in some situations. Four cardinals' dubia (2016) asking how this fits earlier teaching were not answered formally.",
+  "reading": "A strict-continuity reading interprets Amoris Laetitia by Familiaris Consortio and Veritatis Splendor and takes subjective culpability as relevant to guilt, not to the objective norm.",
+  "refs": [
+   "977"
+  ],
+  "related": [
+   "al",
+   "fc",
+   "vs"
+  ]
+ },
+ {
+  "id": "fiducia",
+  "cat": "continuity",
+  "status": "Disputed",
+  "title": "Fiducia Supplicans and blessings",
+  "question": "Do blessings of couples in irregular situations imply approval of their unions?",
+  "settled": "Marriage is between a man and a woman; the Church cannot bless sinful unions (2021 response of the Congregation for the Doctrine of the Faith).",
+  "open": "Fiducia Supplicans allows short non-liturgical blessings of persons who are in such couples. Several bishops' conferences declined to apply it; the Dicastery issued a clarifying press note in January 2024.",
+  "reading": "Read strictly, the blessing is of persons asking help to live by God's will, not of the union, and the doctrine of marriage is unchanged, as the document itself states.",
+  "refs": [
+   "977"
+  ],
+  "related": [
+   "fs"
+  ]
+ },
+ {
+  "id": "humanae-vitae",
+  "cat": "continuity",
+  "status": "Disputed",
+  "title": "Is Humanae Vitae infallible?",
+  "question": "Is the teaching on contraception definitive?",
+  "settled": "Direct contraception is gravely wrong (Casti Connubii, Humanae Vitae, the Catechism).",
+  "open": "Some theologians, notably John Ford and Germain Grisez, argued it is infallibly taught by the ordinary universal magisterium; others hold it is authoritative but not infallible.",
+  "reading": "Either way it requires at least religious submission of mind and will; nothing in later teaching has softened it.",
+  "refs": [
+   "2240",
+   "2241"
+  ],
+  "related": [
+   "hv"
+  ]
+ },
+ {
+  "id": "women-ordination",
+  "cat": "continuity",
+  "status": "Disputed",
+  "title": "Is Ordinatio Sacerdotalis infallible?",
+  "question": "Is the reservation of priesthood to men infallibly taught?",
+  "settled": "John Paul II declared it to be held definitively; the Congregation for the Doctrine of the Faith (1995) said it is taught infallibly by the ordinary universal magisterium.",
+  "open": "Some theologians argue the criteria for that kind of infallibility were not shown to be met.",
+  "reading": "Under the 1998 commentary it is a definitive truth requiring firm assent.",
+  "refs": [],
+  "related": [
+   "os",
+   "ii",
+   "atf"
+  ]
+ },
+ {
+  "id": "coredemptrix",
+  "cat": "continuity",
+  "status": "Disputed",
+  "title": "Mary as Co-redemptrix",
+  "question": "Is the title Co-redemptrix legitimate?",
+  "settled": "Mary cooperated uniquely, by grace, in the redemption won by Christ alone.",
+  "open": "Some popes and saints used the term; there was a movement for a definition. Mater Populi Fidelis (2025) judges the title inappropriate because it can obscure Christ's unique mediation.",
+  "reading": "The title was never defined, so declining it changes no doctrine; the reality it intended (Mary's subordinate cooperation) is reaffirmed.",
+  "refs": [
+   "1940a",
+   "1978a"
+  ],
+  "related": [
+   "mpf"
+  ]
+ },
+ {
+  "id": "justification",
+  "cat": "continuity",
+  "status": "Disputed",
+  "title": "Trent and the Joint Declaration on Justification",
+  "question": "Do Trent's anathemas still apply to Lutheran teaching?",
+  "settled": "Trent's canons on justification remain in force against what they condemn; the Joint Declaration says so too.",
+  "open": "The declaration claims the condemnations do not touch Lutheran teaching as presented in it. The Catholic Church's official response (1998) noted continuing difficulties, especially on whether the justified are at once righteous and sinners.",
+  "reading": "An ecumenical judgment about what each side now teaches, not a change in Trent's doctrine.",
+  "refs": [
+   "793",
+   "811",
+   "843"
+  ],
+  "related": [
+   "jddj"
+  ]
+ },
+ {
+  "id": "liturgy",
+  "cat": "discipline",
+  "status": "Discipline, not doctrine",
+  "title": "The reformed Mass, Summorum Pontificum and Traditionis Custodes",
+  "question": "Did the liturgical reform change doctrine, and what is the status of the older Mass?",
+  "settled": "The Mass is a true sacrifice (Trent); the Church may change rites while keeping the substance of the sacraments.",
+  "open": "How the two forms relate: Benedict XVI said the older missal was never abrogated, while Francis called the reformed books the unique expression of the Roman rite. Pius V's perpetual clause in Quo primum is a disciplinary formula that later popes have always been free to revise.",
+  "reading": "Both popes acted in the disciplinary sphere; neither altered doctrine on the Mass.",
+  "refs": [
+   "931",
+   "946",
+   "948",
+   "956"
+  ],
+  "related": [
+   "mr",
+   "sp",
+   "tc",
+   "sc"
+  ]
+ },
+ {
+  "id": "both-kinds",
+  "cat": "discipline",
+  "status": "Discipline, not doctrine",
+  "title": "Communion under both kinds",
+  "question": "Councils restricted the chalice. Why is it offered again?",
+  "settled": "Christ is wholly received under either species, and the Church may decide how Communion is distributed (Constance, Trent).",
+  "open": "Nothing doctrinal. Trent left the question of granting the chalice to the Pope.",
+  "reading": "Constance and Trent condemned the claim that both kinds are necessary for salvation, not the practice itself.",
+  "refs": [
+   "626",
+   "929a",
+   "931"
+  ],
+  "related": [
+   "sc"
+  ]
+ },
+ {
+  "id": "disciplines",
+  "cat": "discipline",
+  "status": "Discipline, not doctrine",
+  "title": "Other changed disciplines",
+  "question": "Which post-conciliar changes are purely disciplinary?",
+  "settled": "Ecclesiastical law and rites can be changed by competent authority; divine law cannot.",
+  "open": "Prudence of particular changes: reduced fasting and abstinence (1966), the one-hour Eucharistic fast (1964), Communion in the hand by indult (1969), suppression of minor orders and the subdiaconate (1972), female altar servers (1994), women as instituted lectors and acolytes (2021), married former Anglican clergy (2009). Clerical celibacy in the Latin Church is itself a discipline, attested since the Council of Elvira.",
+  "reading": "Each can be judged on its merits without touching faith; reasoned disagreement is legitimate.",
+  "refs": [
+   "52c",
+   "449",
+   "450",
+   "958"
+  ],
+  "related": [
+   "paen",
+   "mq",
+   "cic",
+   "spd",
+   "ac"
+  ]
+ },
+ {
+  "id": "lay-governance",
+  "cat": "continuity",
+  "status": "Disputed",
+  "title": "Can laypeople exercise power of governance?",
+  "question": "May a layperson head a curial office and exercise authority over clergy?",
+  "settled": "Lumen Gentium 21 teaches that episcopal consecration confers the offices of teaching and governing as well as sanctifying.",
+  "open": "Praedicate Evangelium (2022) allows laypeople to head dicasteries by papal delegation. Canonists divide over whether governance power derives from orders or can be delegated by the Pope's jurisdiction alone.",
+  "reading": "Read in continuity, lay officials act by delegated papal authority, not by power of their own, leaving the sacramental basis of the bishops' office intact.",
+  "refs": [],
+  "related": [
+   "pe",
+   "lg"
+  ]
+ },
+ {
+  "id": "prudential-social",
+  "cat": "discipline",
+  "status": "Prudential",
+  "title": "Prudential judgments in recent social teaching",
+  "question": "How binding are papal statements on climate, war, weapons and migration?",
+  "settled": "Moral principles (the dignity of the person, the common good, the universal destination of goods, the just-war criteria) bind as authoritative teaching.",
+  "open": "Applications are prudential: the scientific claims of Laudato Si', Fratelli Tutti's doubt that any modern war can be just, Francis's condemnation of possessing nuclear weapons, and specific migration and economic policies.",
+  "reading": "Donum Veritatis §24 admits that prudential interventions may contain deficiencies. Catholics owe them serious, respectful consideration but may reasonably disagree on the application.",
+  "refs": [
+   "1938a"
+  ],
+  "related": [
+   "ls",
+   "ft",
+   "gs",
+   "donum"
+  ]
+ }
+]

@@ -1,0 +1,1013 @@
+#!/usr/bin/env python3
+"""Build the Eodem Sensu site (Sources of Catholic Dogma) from the files in src/.
+
+    python3 build/build.py                      # GitHub Pages site, written to dist/
+    python3 build/build.py --claude page.html   # the single-page version for Claude
+
+Options for the Pages build (the GitHub Action passes both):
+    --repo owner/name                 used for "Suggest a correction" links
+    --url  https://owner.github.io/name/   the site's public address
+
+Only the Python standard library is used. The build checks every data file
+first and stops with a list of problems if anything does not line up.
+"""
+import argparse, csv, datetime, html, io, json, os, re, shutil, struct, sys, zlib
+from library import inventory, validate_library, validate_relations
+from continuity import validate_continuity, compact_continuity, llms_section, audio_script, case_refs
+from sealed import load_private, merge_sealed, validate_sealed, stale_note, SEALED_FILE
+
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+SRC = os.path.join(ROOT, 'src')
+DATA = os.path.join(SRC, 'data')
+
+FONTS = ('<link rel="preconnect" href="https://fonts.googleapis.com">\n'
+         '<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>\n'
+         '<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Alegreya:ital,wght@0,400;0,500;0,700;1,400'
+         '&family=Alegreya+SC:wght@500;700&family=Alegreya+Sans:wght@400;500;700&display=swap">\n')
+TITLE = 'Eodem Sensu'
+SUBTITLE = 'Sources of Catholic Dogma'  # the former name, kept so search results and links still make sense
+FULL_TITLE = f'{TITLE}: {SUBTITLE}'
+DESC = ("Denzinger's Enchiridion in English (older numbering), searchable, with DS numbers, the Latin text, "
+        "hand-checked weights, the Roman Catechism, doctrinal threads and guides to disputed questions.")
+WEIGHT_KEYS = {'papal-def', 'conc-def', 'conc-canon', 'conc-decree', 'papal', 'papal-teaching', 'particular',
+               'curia', 'pbc', 'condemned', 'creed', 'note', 'supplement', 'cdf', 'liturgy', 'catechism',
+               'papal-address', 'interview', 'commission', 'synod', 'bishops', 'ecumenical'}
+# For AI clients and agents that read the site: what the data is, how to cite it, and how to read condemnations.
+LLMS = """# Eodem Sensu: Sources of Catholic Dogma
+
+> Eodem sensu, "in the same sense": the rule of Vincent of Lérins, quoted by Vatican I, that doctrine develops only in the same dogma, the same sense and the same meaning.
+
+> Denzinger's Enchiridion in English (older numbering) from the creeds to Pius XII, and the documents of the Church from John XXIII to Leo XIV, with each text labelled by the kind of document it comes from and many graded by hand.
+
+## Data
+
+- [entries.json]({url}data/entries.json): every entry: id, text, DS numbers, era, year, weight (kind of document), hand-checked grade with its reason, censure, cross-references.
+- [documents.json]({url}data/documents.json): source inventory, local coverage, provenance, review status and full-text links. An excerpt view is not a complete document.\n- [weights.csv]({url}data/weights.csv): the hand-checked grades and the reason for each.
+- [latin.json]({url}data/latin.json): the Latin text by DS number.
+- [guides.json]({url}data/guides.json): the disputed questions, the guide to documents since 1950, the doctrinal threads, and the principles of hermeneutics.
+- [continuity.json]({url}data/continuity.json): the hermeneutic of ecclesial continuity, a research layer: principles P1-P8 and 24 cases with propositions, contradiction matrices, provisional verdicts and evidence gaps. Not Church teaching.
+- A page for each entry: {url}n/<id>/
+
+## Citing
+
+Before 1958, cite by the older Denzinger number: n. 1839. After 1958, by document and article: LG 25, EV 62, CCC 2267; addresses by date: AD 19641203. Each entry gives its source.
+
+## Weight
+
+The weight label says what kind of document a text comes from: a conciliar definition, papal teaching, a document of the Doctrine of the Faith, an address or homily, an interview (private opinion, not magisterial), a commission study, and so on. A hand-checked grade, where present, says what the text itself proposes: defined dogma, definitive, authoritative teaching, discipline, prudential judgment, or weight disputed.
+
+## Reading magisterial texts (hermeneutics)
+
+{herm}
+
+## Reading condemned propositions
+
+- A condemnation targets a proposition in a determinate sense, not every meaning its words could bear. Establish that sense from the source the proposition was taken from, the wording of the condemnation (named senses, censures), and authoritative explanations; never supply an intention the evidence does not show.
+- With censures given respectively or in globo, each proposition deserves at least one of the listed censures, not necessarily the gravest; condemned is not the same as declared heretical.
+- Rejecting a proposition in a sense does not affirm its unrestricted opposite.
+- The same words can express different doctrines; a definition is what is proposed to be held, not the reasoning around it.
+- An apparent contradiction between texts is a question to examine with these distinctions, not a refutation. See {url}#reading
+"""
+GRADE_KEYS = {'dogma', 'definitive', 'authentic', 'discipline', 'condemned', 'condemned-heresy', 'profession',
+              'disputed', 'act', 'void', 'prudential', 'witness', 'editorial'}
+# label and colour level of each rule-based weight and each hand-checked grade (mirrors app.js)
+WEIGHT_LABEL = {
+    'papal-def': ('Papal definition', 'dogma'), 'conc-def': ('Conciliar definition', 'dogma'),
+    'conc-canon': ('Conciliar canon', 'definitive'), 'conc-decree': ('Conciliar decree', 'authentic'),
+    'papal-teaching': ('Papal teaching', 'authentic'), 'particular': ('Particular council', 'study'),
+    'curia': ('Curial response', 'prudential'), 'pbc': ('Biblical Commission', 'prudential'),
+    'condemned': ('Condemned proposition', 'definitive'), 'creed': ('Creed', 'dogma'),
+    'note': ('Editorial note', 'study'), 'supplement': ('Not in Denzinger', 'study'),
+    'cdf': ('Doctrine of the Faith', 'authentic'), 'liturgy': ('Liturgical norm', 'discipline'),
+    'catechism': ('Catechism', 'authentic'), 'papal-address': ('Address or homily', 'study'),
+    'interview': ('Interview', 'private'), 'commission': ('Commission or council study', 'study'),
+    'synod': ('Synod of Bishops', 'study'), 'bishops': ("Bishops' conference", 'study'),
+    'ecumenical': ('Ecumenical agreement', 'dialogue'),
+}
+GRADE_LABEL = {
+    'dogma': ('Defined dogma', 'dogma'), 'definitive': ('Definitive', 'definitive'),
+    'authentic': ('Authoritative teaching', 'authentic'), 'discipline': ('Discipline', 'discipline'),
+    'condemned': ('Condemned, graded censures', 'definitive'), 'condemned-heresy': ('Condemned as heresy', 'definitive'),
+    'profession': ('Profession of faith', 'dogma'), 'disputed': ('Weight disputed', 'prudential'),
+    'act': ('Juridical act', 'discipline'), 'void': ('Without authority', 'study'),
+    'prudential': ('Prudential decision', 'prudential'), 'witness': ('Historical witness', 'study'),
+    'editorial': ('Editorial note', 'study'),
+}
+
+
+def load(name):
+    with open(os.path.join(DATA, name), encoding='utf-8') as f:
+        return json.load(f)
+
+
+def esc(s):
+    return html.escape(str(s), quote=True)
+
+
+def enc_id(i):
+    """Entry id as used in a page address: 88* -> 88_s."""
+    return i.replace('*', '_s')
+
+
+def disp_id(i):
+    return re.sub(r'^([A-Z]{2,})(\d)', r'\1 \2', re.sub(r'-\d+$', '', i))
+
+
+def n_label(i):
+    """n. 1839; LG 11 for a document after 1958, cited by its own article."""
+    return disp_id(i) if re.match(r'[A-Z]{2}', i) else f'n. {disp_id(i)}'
+
+
+# --------------------------------------------------------------------------- load and check
+class Problems(list):
+    def add(self, where, msg):
+        self.append(f'{where}: {msg}')
+
+
+def load_all():
+    d = {
+        'eras': load('eras.json'), 'entries': load('entries.json'), 'weights': load('weights.json'),
+        'censures': load('censures.json'), 'books': load('books.json'), 'quality': load('quality.json'),
+        'since': load('since1950.json'), 'disputed': load('disputed.json'), 'threads': load('threads.json'),
+        'latin': load('latin.json'), 'catechism': load('catechism.json'), 'concepts': load('concepts.json'),
+        'herm': load('hermeneutics.json'), 'changes': load('changes.json'),
+        'latin_checked': load('latin-checked.json'),
+        'document_metadata': load('documents.json'),
+        'relations': load('relations.json'), 'roadmap': load('roadmap.json'),
+        'continuity': load('continuity.json'),
+    }
+    private = load_private()
+    if private is not None:
+        d['_private'] = private
+    return d
+
+
+def expand_refs(refs, order, where, P):
+    """Turn ["857", "860–870"] into ids; a range runs in the order of the collection."""
+    out = []
+    for r in refs:
+        m = re.fullmatch(r'(.+?)\s*[–-]{1,2}\s*(.+)', r) if r not in order else None
+        if m and m.group(1) in order and m.group(2) in order:
+            a, b = order[m.group(1)], order[m.group(2)]
+            if a > b:
+                P.add(where, f'range {r} runs backwards')
+                continue
+            out.extend(ID_AT[a:b + 1])
+        elif r in order:
+            out.append(r)
+        else:
+            P.add(where, f'no entry {r}')
+    return out
+
+
+ID_AT = []
+
+
+def check(d):
+    private = d.pop('_private', None)
+    pristine = json.loads(json.dumps(d)) if private is not None else None
+    P = Problems()
+    E, eras = d['entries'], d['eras']
+    order = {}
+    for k, e in enumerate(E):
+        where = f"entries.json, entry {e.get('id', '?')} (line {k + 2})"
+        for key in ('id', 'era', 'text', 'weight'):
+            if key not in e:
+                P.add(where, f'missing "{key}"')
+        if 'id' not in e:
+            continue
+        if e['id'] in order:
+            P.add(where, 'the same id is used twice')
+        order[e['id']] = k
+        if not isinstance(e.get('era'), int) or not 0 <= e['era'] < len(eras):
+            P.add(where, f'era {e.get("era")} is not a line of eras.json')
+        if e.get('weight') not in WEIGHT_KEYS:
+            P.add(where, f'unknown weight "{e.get("weight")}"')
+        if not isinstance(e.get('text'), list) or not all(isinstance(p, str) for p in e.get('text', [])):
+            P.add(where, '"text" must be a list of paragraphs')
+        if 'censure' in e and not 0 <= e['censure'] < len(d['censures']):
+            P.add(where, f'censure {e["censure"]} is not a line of censures.json')
+        for n in e.get('ds', []):
+            if not str(n).isdigit():
+                P.add(where, f'DS number "{n}" is not a number')
+            elif str(n) not in d['latin']:
+                pass  # some DS numbers have no Latin text on the source page; the page says so
+        if e.get('dsHow') not in (None, 'series', 'checked'):
+            P.add(where, f'unknown dsHow "{e.get("dsHow")}"')
+    used = {e.get('era') for e in E}
+    for i, er in enumerate(eras):
+        if i not in used:
+            P.add(f'eras.json, line {i + 2} ({er.get("name")})', 'no entry belongs to this era; add its entries in the same change')
+    ID_AT[:] = [e['id'] for e in E]
+    for i, w in enumerate(d['weights']):
+        where = f'weights.json, line {i + 2}'
+        for key in ('from', 'to'):
+            if w.get(key) not in order:
+                P.add(where, f'"{key}" is {w.get(key)}, which is not an entry')
+        if w.get('g') not in GRADE_KEYS:
+            P.add(where, f'unknown grade "{w.get("g")}"')
+        if w.get('from') in order and w.get('to') in order and order[w['from']] > order[w['to']]:
+            P.add(where, 'the range runs backwards')
+    for s in d['since']:
+        for r in s.get('refs', []):
+            if r not in order:
+                P.add(f'since1950.json, {s["id"]}', f'no entry {r}')
+    for q in d['disputed']:
+        for r in q.get('refs', []):
+            if r not in order:
+                P.add(f'disputed.json, {q["id"]}', f'no entry {r}')
+    for t in d['threads']:
+        for st in t['steps']:
+            if st.get('ref') and st['ref'] not in order:
+                P.add(f'threads.json, {t["id"]}', f'no entry {st["ref"]}')
+    since_ids, disp_ids = {s['id'] for s in d['since']}, {q['id'] for q in d['disputed']}
+    hseen = set()
+    for p in d['herm']['principles']:
+        where = f'hermeneutics.json, {p.get("id", "?")}'
+        if not p.get('id') or p['id'] in hseen:
+            P.add(where, 'each principle needs an "id" of its own')
+        hseen.add(p.get('id'))
+        for key in ('title', 'rule', 'body', 'misuse'):
+            if not p.get(key):
+                P.add(where, f'missing "{key}"')
+        for r in p.get('refs', []):
+            if r not in order:
+                P.add(where, f'no entry {r}')
+        for r in p.get('since', []):
+            if r not in since_ids:
+                P.add(where, f'no Since 1950 item {r}')
+        for r in p.get('disputed', []):
+            if r not in disp_ids:
+                P.add(where, f'no disputed question {r}')
+    for i, c in enumerate(d['latin_checked']):
+        where = f'latin-checked.json, line {i + 2}'
+        if not isinstance(c.get('ds'), list) or not c['ds'] or not c.get('against') or not re.fullmatch(r'\d{4}-\d{2}-\d{2}', c.get('date', '')):
+            P.add(where, 'each check needs "ds" (a list of DS numbers), "against" (the edition compared) and "date" (YYYY-MM-DD)')
+            continue
+        for n in c['ds']:
+            if str(n) not in d['latin']:
+                P.add(where, f'DS {n} has no Latin text to check')
+    for i, c in enumerate(d['changes']):
+        where = f'changes.json, line {i + 2}'
+        if not re.fullmatch(r'\d{4}-\d{2}-\d{2}', c.get('date', '')) or not c.get('title') or not c.get('summary'):
+            P.add(where, 'each change needs a "date" (YYYY-MM-DD), a "title" and a "summary"')
+        h = c.get('href', '')
+        m = re.fullmatch(r'#e(\d+)', h)
+        if (m and int(m.group(1)) >= len(eras)) or (h.startswith('#n') and h[2:] not in order) or not h.startswith('#'):
+            P.add(where, f'"href" {h} leads nowhere in the reader')
+    seen = set()
+    for i, c in enumerate(d['concepts']):
+        where = f'concepts.json, line {i + 2} ({c.get("id", "?")})'
+        if not c.get('id') or c['id'] in seen:
+            P.add(where, 'each concept needs an "id" of its own')
+        seen.add(c.get('id'))
+        if not c.get('label') or not c.get('terms') or not all(isinstance(t, str) and t.strip() for t in c['terms'] + c.get('also', [])):
+            P.add(where, 'a concept needs a "label" and a list of "terms"')
+        for r in c.get('refs', []):
+            if r not in order:
+                P.add(where, f'no entry {r}')
+    ids = set()
+    for p in d['catechism']['parts']:
+        for ch in p['chapters']:
+            if ch['id'] in ids:
+                P.add('catechism.json', f'chapter id {ch["id"]} is used twice')
+            ids.add(ch['id'])
+            ch['refs'] = expand_refs(ch.get('refs', []), order, f'catechism.json, {ch["id"]}', P)
+    validate_library(d, order, P)
+    validate_relations(d, order, P)
+    validate_continuity(d, order, P)
+    validate_sealed(d, P)
+    if private is not None:  # check the sealed research too, merged in as the reader merges it
+        _, P2 = check(merge_sealed(pristine, private))
+        P.extend(f'sealed research (private/), {x}' for x in P2)
+    return order, P
+
+
+# notes already looked at: numbers that cite another work (Augustine's tractates, a decree's own sections),
+# and DS numbers that the Latin page really does give to two entries
+KNOWN_NOTES = {'8 n. 3', '656 n. 11', '1525 n. 10', '1525 n. 7', 'ID12 n. 3', 'DS 354'}
+
+
+def warnings(d, order):
+    """Things that do not stop the build but deserve a look; printed after each build."""
+    W = []
+    E = d['entries']
+    by_id = {e['id']: e for e in E}
+    _, _, by_base = cross_refs(E)
+    for e in E:
+        if e.get('supplement'):
+            continue
+        for m in REF_RE.finditer(' '.join(e['text'])):
+            if m.group(2):
+                continue
+            for n in NUM_RE.findall(m.group(4)):
+                if not resolve(n, by_id, by_base) and f'{e["id"]} n. {n}' not in KNOWN_NOTES:
+                    W.append(f'entry {e["id"]}: "n. {n}" points to no entry')
+        for l in e.get('links', []):
+            if not re.match(r'https?://[^\s/]+\.[^\s]+$', l.get('url', '')):
+                W.append(f'entry {e["id"]}: link "{l.get("url")}" is not a web address')
+    claimed = {}
+    for e in E:
+        if e.get('dsHow') == 'series' or doc_of(e['id']):
+            continue  # after 1958 one DS number can span several articles
+        for n in e.get('ds', []):
+            claimed.setdefault(str(n), set()).add(re.sub(r'-\d+$', '', e['id']))
+    for n, ids in sorted(claimed.items(), key=lambda x: int(x[0])):
+        if len(ids) > 1 and f'DS {n}' not in KNOWN_NOTES:
+            W.append(f'DS {n} is given to more than one entry: {", ".join(sorted(ids))}')
+    all_ds = {str(n) for e in E for n in e.get('ds', [])}
+    orphans = [n for n in d['latin'] if n not in all_ds]
+    if orphans:
+        W.append(f'{len(orphans)} Latin texts belong to no entry (DS {", ".join(orphans[:10])}{"…" if len(orphans) > 10 else ""})')
+    h = curated_index(E, d['weights'], order)
+    used = set(x for x in h if x is not None)
+    for i, w in enumerate(d['weights']):
+        if i not in used:
+            W.append(f'weights.json, line {i + 2} ({w["from"]}–{w["to"]}): every entry is already covered by an earlier range, so this one never applies; move it above the wider range')
+    for s in d['since']:
+        if not re.match(r'https://', s.get('url', '')):
+            W.append(f'since1950.json, {s["id"]}: the official link should be https')
+    return W
+
+
+# --------------------------------------------------------------------------- derived data
+def curated_index(E, weights, order):
+    """Each entry takes the first hand-checked range that contains it."""
+    h = [None] * len(E)
+    for ci, w in enumerate(weights):
+        a, b = order[w['from']], order[w['to']]
+        for k in range(a, b + 1):
+            if h[k] is None:
+                h[k] = ci
+    return h
+
+
+REF_RE = re.compile(r'(^|[^A-Za-z])((?:Kch|Kirch|R|H|L|M|EP|RS)\.?\s)?(nn?\.\s?)'
+                    r'(\d{1,4}[a-z]?(?:\s?(?:,|and|-|–|f\.|ff\.)\s?\d{1,4}[a-z]?)*)')
+NUM_RE = re.compile(r'\d{1,4}[a-z]?\*?')
+
+
+def resolve(num, by_id, by_base):
+    if num in by_id:
+        return num
+    try:
+        return by_base.get(int(re.match(r'\d+', num).group()))
+    except (AttributeError, ValueError):
+        return None
+
+
+def cross_refs(E):
+    """Numbers an entry's text points to ("see n. 1824"), and the reverse."""
+    by_id = {e['id']: e for e in E}
+    by_base = {}
+    for e in E:
+        m = re.match(r'\d+', e['id'])
+        if m and int(m.group()) not in by_base:
+            by_base[int(m.group())] = e['id']
+    cites, cited = {}, {}
+    for e in E:
+        if e.get('supplement'):
+            continue
+        found = []
+        for m in REF_RE.finditer(' '.join(e['text'])):
+            if m.group(2):
+                continue  # Kirch, Rouet de Journel etc. use their own numbers
+            for n in NUM_RE.findall(m.group(4)):
+                t = resolve(n, by_id, by_base)
+                if t and t != e['id'] and t not in found:
+                    found.append(t)
+        if found:
+            cites[e['id']] = found
+            for t in found:
+                cited.setdefault(t, []).append(e['id'])
+    return cites, cited, by_base
+
+
+def era_span(er):
+    nums = [int(x) for x in re.findall(r'\d{2,4}', er['dates'] or '')]
+    if not nums:
+        return er['year'], er['year']
+    return min(nums + [er['year']]), max(nums)
+
+
+def entry_year(e, er):
+    """A date for the entry: a year printed in its heading inside the era's span, else the era's first year."""
+    lo, hi = era_span(er)
+    for text in (e.get('source') or '', e.get('session') or ''):
+        for y in re.findall(r'(?<![\d.:])(\d{3,4})(?![\d:])', text):
+            y = int(y)
+            if lo - 1 <= y <= hi + 1 and y > 90:
+                return y, True
+    return er['year'], False
+
+
+# --------------------------------------------------------------------------- compact data for the page
+def compact(d, order):
+    E, eras = d['entries'], d['eras']
+    d['library'] = inventory(d, entry_year)
+    d['library']['relations'] = d['relations']
+    d['library']['roadmap'] = d['roadmap']
+    h = curated_index(E, d['weights'], order)
+    cites, cited, _ = cross_refs(E)
+    rc = {}
+    for p in d['catechism']['parts']:
+        for ch in p['chapters']:
+            for r in ch['refs']:
+                rc.setdefault(r, [])
+                if ch['id'] not in rc[r]:
+                    rc[r].append(ch['id'])
+    rows = []
+    for k, e in enumerate(E):
+        y, exact = entry_year(e, eras[e['era']])
+        f = {'w': e['weight'], 'doc': d['library']['entryMap'][e['id']]}
+        if e.get('note'): f['n'] = 1
+        if e.get('kinds'): f['k'] = e['kinds']
+        if e.get('scripture'): f['s'] = e['scripture']
+        if 'censure' in e: f['c'] = e['censure']
+        if h[k] is not None: f['h'] = h[k]
+        if e.get('supplement'): f['sup'] = 1
+        if e.get('links'): f['L'] = e['links']
+        if e.get('ds'): f['x'] = e['ds']
+        if e.get('dsHow'): f['xh'] = e['dsHow']
+        f['y'] = y if exact else -y
+        if e['id'] in cited: f['cb'] = cited[e['id']]
+        if e['id'] in rc: f['rc'] = rc[e['id']]
+        rows.append([e['id'], e['era'], e.get('session'), e.get('topic'), e.get('source'), e['text'], f])
+    era_rows = []
+    for er in eras:
+        o = {'n': er['name'], 'd': er['dates'], 's': er['note'], 'y': er['year'], 'a': 1 if er.get('appendix') else 0}
+        if er.get('supplement'): o['sup'] = 1
+        era_rows.append(o)
+    cat = {k: v for k, v in d['catechism'].items()}
+    lc = {str(n): {'against': c['against'], 'date': c['date']} for c in d['latin_checked'] for n in c['ds']}
+    raw = {'eras': era_rows, 'entries': rows, 'books': d['books'], 'censures': d['censures'],
+           'curated': d['weights'], 'quality': d['quality'], 'rc': cat, 'latinChecked': lc}
+    return raw, {'h': h, 'cites': cites, 'cited': cited, 'rc': rc}
+
+
+def dump(o):
+    s = json.dumps(o, ensure_ascii=False, separators=(',', ':'))
+    return s.replace('</', '<\\/')
+
+
+# --------------------------------------------------------------------------- the reader page
+def read_src(name):
+    with open(os.path.join(SRC, name), encoding='utf-8') as f:
+        return f.read()
+
+
+def reader_body(raw, d, site):
+    css = read_src('styles.css')
+    shell = read_src('shell.html')
+    app = read_src('app.js')
+    return ('<style>\n' + css + '</style>\n\n' + shell + '\n'
+            f'<script type="application/json" id="site-data">{dump(site)}</script>\n'
+            f'<script type="application/json" id="data">{dump(raw)}</script>\n'
+            f'<script type="application/json" id="since-data">{dump(d["since"])}</script>\n'
+            f'<script type="application/json" id="disputed-data">{dump(d["disputed"])}</script>\n'
+            f'<script type="application/json" id="threads-data">{dump(d["threads"])}</script>\n'
+            f'<script type="application/json" id="hermeneutics-data">{dump(d["herm"])}</script>\n'
+            f'<script type="application/json" id="continuity-data">{dump(compact_continuity(d))}</script>\n'
+            f'<script type="application/json" id="changes-data">{dump(d["changes"])}</script>\n'
+            f'<script type="application/json" id="library-data">{dump(d["library"])}</script>\n'
+            f'<script type="application/json" id="concepts-data">{dump(d["concepts"])}</script>\n'
+            f'<script type="application/json" id="latin-data">{dump(d["latin"])}</script>\n'
+            '<script>\n' + app + '</script>\n')
+
+
+def hashed(out, name, ext, text):
+    """Write assets/<name>.<hash>.<ext>, so a browser can keep it until its content changes."""
+    data = text.encode('utf-8')
+    rel = f'assets/{name}.{zlib.crc32(data) & 0xffffffff:08x}.{ext}'
+    os.makedirs(os.path.join(out, 'assets'), exist_ok=True)
+    with open(os.path.join(out, rel), 'wb') as f:
+        f.write(data)
+    return rel
+
+
+def reader_split(raw, d, site, out):
+    """The Pages reader: a small page that shows the frame at once and fetches the app and the data.
+    The Latin is fetched only when it is first needed."""
+    site = dict(site)
+    site['latin'] = hashed(out, 'latin', 'json', dump(d['latin']))
+    blocks = {'site-data': site, 'data': raw, 'since-data': d['since'], 'disputed-data': d['disputed'],
+              'threads-data': d['threads'], 'concepts-data': d['concepts'], 'hermeneutics-data': d['herm'],
+              'changes-data': d['changes'], 'library-data': d['library'], 'continuity-data': compact_continuity(d)}
+    data_rel = hashed(out, 'reader', 'json', dump(blocks))
+    css_rel = hashed(out, 'styles', 'css', read_src('styles.css'))
+    app_rel = hashed(out, 'app', 'js', read_src('app.js'))
+    shell = read_src('shell.html').replace(
+        '<div class="col" id="view"></div>',
+        '<div class="col" id="view"><p class="loading" id="boot">Loading the collection…</p></div>')
+    loader = ('(function(){var b=document.getElementById("boot");'
+              'function fail(){b.innerHTML=\'The collection could not be loaded. <a href="">Try again</a>.\';}'
+              f'fetch("{data_rel}").then(function(r){{if(!r.ok)throw r;return r.json();}}).then(function(j){{'
+              'window.DZ_DATA=j;var s=document.createElement("script");'
+              f's.src="{app_rel}";s.onerror=fail;document.body.appendChild(s);}}).catch(fail);}})();')
+    head_extra = (f'<link rel="stylesheet" href="{css_rel}">\n'
+                  f'<link rel="preload" href="{data_rel}" as="fetch" crossorigin>\n'
+                  f'<link rel="preload" href="{app_rel}" as="script">\n')
+    body = shell + '\n<noscript><p style="padding:1rem">The reader needs JavaScript. Every entry also has its own page, listed in the <a href="sitemap.xml">sitemap</a>.</p></noscript>\n' + f'<script>{loader}</script>\n'
+    return head_extra, body, [css_rel, data_rel, app_rel, site['latin']]
+
+
+ICON_SVG = ("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%23a11f1d'/%3E"
+            "%3Ctext x='32' y='45' font-family='Georgia,serif' font-size='38' font-weight='700' text-anchor='middle' fill='%23fff'%3ED%3C/text%3E%3C/svg%3E")
+
+
+OG_IMAGE = 'assets/og.png'
+
+
+def head(title, desc, url, prefix, extra='', site_url=''):
+    return ('<!doctype html>\n<html lang="en">\n<head>\n<meta charset="utf-8">\n'
+            '<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">\n'
+            f'<title>{esc(title)}</title>\n'
+            f'<meta name="description" content="{esc(desc)}">\n'
+            + (f'<link rel="canonical" href="{esc(url)}">\n<meta property="og:url" content="{esc(url)}">\n' if url else '')
+            + f'<meta property="og:type" content="website">\n<meta property="og:site_name" content="{TITLE}">\n'
+            f'<meta property="og:title" content="{esc(title)}">\n<meta property="og:description" content="{esc(desc)}">\n'
+            + (f'<meta property="og:image" content="{esc(site_url + OG_IMAGE)}">\n<meta property="og:image:width" content="1200">\n'
+               f'<meta property="og:image:height" content="630">\n<meta property="og:image:alt" content="{TITLE}">\n'
+               '<meta name="twitter:card" content="summary_large_image">\n' if site_url else '<meta name="twitter:card" content="summary">\n')
+            + 
+            '<meta name="theme-color" content="#a11f1d">\n'
+            f'<link rel="icon" href="{ICON_SVG}">\n'
+            f'<link rel="apple-touch-icon" href="{prefix}icons/icon-180.png">\n'
+            f'<link rel="manifest" href="{prefix}manifest.webmanifest">\n'
+            + FONTS + extra + '</head>\n<body>\n')
+
+
+# --------------------------------------------------------------------------- static entry pages
+CITE_RE = re.compile(r'\[([^\[\]]{2,80}?\d+\s?:\s?\d+[^\[\]]{0,40}?)\]')
+SUP_RE = re.compile(r'\(((?:[CBFTS]\d{1,2}(?:–[CBFTS]\d{1,2})?)(?:,\s*[CBFTS]\d{1,2}(?:–[CBFTS]\d{1,2})?)*)\)')
+MIGNE_RE = re.compile(r'\b(MG|ML)(\s+)(\d{1,3})(\s*,\s*\d{1,4}(?:\s?[A-D]\b)?)')
+
+
+def static_text(text, by_id, by_base):
+    h = esc(text).replace('&#x27;', "'")
+    h = CITE_RE.sub(r'<span class="cite">[\1]</span>', h)
+
+    def nums(m):
+        if m.group(2):
+            return m.group(0)
+        def one(n):
+            t = resolve(n.group(0), by_id, by_base)
+            return f'<a class="xref" href="../{esc(enc_id(t))}/">{n.group(0)}</a>' if t else n.group(0)
+        return m.group(1) + m.group(3) + NUM_RE.sub(one, m.group(4))
+    h = REF_RE.sub(nums, h)
+    h = SUP_RE.sub(lambda m: '(' + re.sub(r'[CBFTS]\d{1,2}', lambda x: f'<a class="xref" href="../{x.group(0)}/">{x.group(0)}</a>'
+                                         if x.group(0) in by_id else x.group(0), m.group(1)) + ')', h)
+    h = MIGNE_RE.sub(lambda m: f'<a class="xref" href="http://{"graeca" if m.group(1) == "MG" else "latina"}.patristica.net/#t{int(m.group(3)):03d}" '
+                               f'rel="noopener">{m.group(1)}{m.group(2)}{m.group(3)}{m.group(4)}</a>', h)
+    return h
+
+
+def ds_range(lst):
+    out, i = [], 0
+    while i < len(lst):
+        j = i
+        while j + 1 < len(lst) and int(lst[j + 1]) == int(lst[j]) + 1:
+            j += 1
+        out.append(f'{lst[i]}–{lst[j]}' if j > i else str(lst[i]))
+        i = j + 1
+    return ', '.join(out)
+
+
+DATED = {'AD', 'IV'}  # addresses and interviews, numbered by their date, not documents with articles
+DOC_RE = re.compile(r'([A-Z]{2,})(\d+)(?:-\d+)?')
+
+
+def doc_of(i):
+    """LG25 -> LG: the document an entry after 1958 belongs to, cited by article."""
+    m = DOC_RE.fullmatch(i)
+    return m.group(1) if m else None
+
+
+def documents(E):
+    docs = {}
+    for e in E:
+        dm = doc_of(e['id'])
+        if dm and dm not in DATED:
+            docs.setdefault(dm, []).append(e)
+    return docs
+
+
+def doc_title(ents):
+    src = ents[0].get('source') or ''
+    m = re.search(r'["“]([^"”]+?),?["”]', src)
+    if m:
+        return m.group(1).strip()
+    m = re.match(r'\[From (?:the )?(.+?)(?:,\s*(?:[A-Z][a-z]{2,8}\.? \d{1,2},|\d{4}|[A-Z][a-z]+, [A-Z])|\])', src)
+    return m.group(1).strip() if m else disp_id(ents[0]['id']).split(' ')[0]
+
+
+def redirect_page(target, label):
+    t = esc(target)
+    return ('<!doctype html>\n<html lang="en"><head><meta charset="utf-8">'
+            f'<title>{esc(label)} · {TITLE}</title><link rel="canonical" href="{t}">'
+            f'<meta name="robots" content="noindex"><meta http-equiv="refresh" content="0; url={t}">'
+            f'</head><body><p><a href="{t}">{esc(label)}</a></p></body></html>\n')
+
+
+def short_links(d, out, url):
+    """Addresses people already cite by: ds/3074/, lg/25/, and lg/ for the selected passages from a document."""
+    E = d['entries']
+    base = url or '../../'
+    made = 0
+    seen_ds = set()
+    for e in E:
+        for n in e.get('ds', []):
+            if n in seen_ds or e.get('dsHow') == 'series':
+                continue
+            seen_ds.add(n)
+            tgt = f'{url}n/{enc_id(e["id"])}/' if url else f'../../n/{enc_id(e["id"])}/'
+            write(os.path.join(out, 'ds', str(n), 'index.html'), redirect_page(tgt, f'DS {n}'))
+            made += 1
+    for dm, ents in documents(E).items():
+        low = dm.lower()
+        if low in ('n', 'ds', 'data', 'assets', 'icons'):
+            continue
+        for e in ents:
+            art = DOC_RE.fullmatch(e['id']).group(2)
+            path = os.path.join(out, low, art, 'index.html')
+            if os.path.exists(path):
+                continue
+            tgt = f'{url}n/{enc_id(e["id"])}/' if url else f'../../n/{enc_id(e["id"])}/'
+            write(path, redirect_page(tgt, f'{dm} {art}'))
+            made += 1
+        tgt = f'{url}#doc-{dm}' if url else f'../#doc-{dm}'
+        write(os.path.join(out, low, 'index.html'), redirect_page(tgt, doc_title(ents)))
+        made += 1
+    return made
+
+
+def entry_pages(d, raw, derived, out, url):
+    E, eras = d['entries'], d['eras']
+    by_id = {e['id']: e for e in E}
+    _, _, by_base = cross_refs(E)
+    weights = d['weights']
+    ch_by = {}
+    for p in d['catechism']['parts']:
+        for ch in p['chapters']:
+            ch_by[ch['id']] = (p, ch)
+    disc = {}
+    for q in d['disputed']:
+        for r in q['refs']:
+            disc.setdefault(r, []).append((f'#q-{q["id"]}', q['title']))
+    for s in d['since']:
+        for r in s['refs']:
+            disc.setdefault(r, []).append((f'#since-{s["id"]}', s['title']))
+    for t in d['threads']:
+        for st in t['steps']:
+            if st.get('ref'):
+                disc.setdefault(st['ref'], []).append((f'#thread-{t["id"]}', t['title'] + ' (thread)'))
+    for p in d['herm']['principles']:
+        for r in p['refs']:
+            disc.setdefault(r, []).append((f'#herm-{p["id"]}', p['title'] + ' (hermeneutics)'))
+    for c in d['continuity']['cases']:
+        for r in case_refs(c):
+            disc.setdefault(r, []).append((f'#case-{c["id"]}', f'Case {c["id"]}: {c["title"]} (research)'))
+    derived_years = [abs(r[6]['y']) for r in raw['entries']]
+    docs = documents(E)
+    source_records = {r['id']: r for r in d['library']['records']}
+    urls = []
+    for k, e in enumerate(E):
+        er = eras[e['era']]
+        eid = e['id']
+        label = f'Supplement {eid}' if e.get('supplement') else disp_id(eid) if re.match(r'[A-Z]{2}', eid) else f'Denzinger n. {disp_id(eid)}'
+        ds = e.get('ds') or []
+        ds_txt = (' (cf. DS ' if e.get('dsHow') == 'series' else ' (DS ') + ds_range(ds) + ')' if ds else ''
+        topic = e.get('topic') or ''
+        title = f'{label}{ds_txt}{": " + topic if topic else ""} · {TITLE}'
+        body_text = ' '.join(e['text'])
+        desc = re.sub(r'\s+', ' ', body_text).strip()
+        desc = (desc[:157].rsplit(' ', 1)[0] + '…') if len(desc) > 160 else desc
+        page_url = f'{url}n/{enc_id(eid)}/' if url else ''
+        hk = derived['h'][k]
+        if hk is not None:
+            g = GRADE_LABEL[weights[hk]['g']]
+            pill = f'<span class="pill lv-{g[1]}">Editorial grade · {esc(g[0])}</span>'
+        else:
+            g = WEIGHT_LABEL.get('papal-teaching' if e['weight'] == 'papal' else e['weight'])
+            pill = f'<span class="pill lv-{g[1]}">{esc(g[0])}</span>'
+        meta_bits = [esc(er['name'])] + ([esc(er['dates'])] if er['dates'] else []) + ([esc(e['session'])] if e.get('session') else [])
+        ld_extra = ''
+        if url:
+            crumbs = [(TITLE, url), (er['name'], f'{url}#e{e["era"]}'), (label, page_url)]
+            year = derived_years[k]
+            ld = {'@context': 'https://schema.org', '@graph': [
+                {'@type': 'Quotation', '@id': page_url + '#text', 'url': page_url, 'name': title.rsplit(' · ', 1)[0], 'inLanguage': 'en',
+                 'text': re.sub(r'\s+', ' ', body_text).strip()[:500], 'about': topic or None,
+                 'creator': {'@type': 'Organization' if re.search(r'Council|Synod|Congregation|Commission|Creed', er['name']) else 'Person', 'name': er['name']},
+                 'dateCreated': str(year) if year else None,
+                 'identifier': [x for x in [n_label(eid), ('DS ' + ds_range(ds)) if ds else None] if x],
+                 'isPartOf': {'@type': 'WebSite', 'name': TITLE, 'url': url},
+                 'citation': 'Heinrich Denzinger, Enchiridion Symbolorum' if not e.get('supplement') and not re.match(r'[A-Z]{2}', eid) else None},
+                {'@type': 'BreadcrumbList', 'itemListElement': [{'@type': 'ListItem', 'position': i + 1, 'name': n, 'item': u} for i, (n, u) in enumerate(crumbs)]}]}
+            ld['@graph'][0] = {a: b for a, b in ld['@graph'][0].items() if b is not None}
+            ld_extra = f'<script type="application/ld+json">{dump(ld)}</script>\n'
+        parts = [head(title, desc, page_url, '../../', '<link rel="stylesheet" href="../../assets/entry.css">\n' + ld_extra, url)]
+        parts.append(f'''<header class="top"><a class="brand" href="../../"><b>Denzinger</b><span>{TITLE}</span></a>
+<form class="search" action="../../" method="get" role="search"><input name="q" type="search" placeholder="Search the collection" aria-label="Search the collection"></form>
+<a class="btn" href="../../#n{esc(eid)}">Read in context</a></header>
+<main class="col">
+<p class="crumbs"><a href="../../#e{e['era']}">{meta_bits[0]}</a>{''.join(' · ' + b for b in meta_bits[1:])}</p>
+<h1><span class="num">{esc(label.replace('Denzinger ', ''))}</span>{(' ' + static_text(topic, by_id, by_base)) if topic else ''}</h1>
+''')
+        if e.get('source'):
+            parts.append(f'<p class="src">{static_text(e["source"], by_id, by_base)}</p>\n')
+        genre = WEIGHT_LABEL['papal-teaching' if e['weight'] == 'papal' else e['weight']]
+        tags = [f'<span class="pill">{esc(genre[0])}</span>', pill] if hk is not None else [pill]
+        if ds:
+            tags.insert(0, f'<span class="dsno">{"cf. " if e.get("dsHow") == "series" else ""}DS {esc(ds_range(ds))}</span>')
+        if 'censure' in e:
+            c = d['censures'][e['censure']]
+            tags.append(f'<span class="cens">Censured as {esc(", ".join(c["w"]))}{", respectively" if c.get("r") else ""}</span>')
+        parts.append(f'<div class="wline">{"".join(tags)}</div>\n<div class="body">')
+        parts.extend(f'<p>{static_text(p, by_id, by_base)}</p>' for p in e['text'])
+        parts.append('</div>\n')
+        if ds:
+            lat = ''.join(f'<p><span class="dsn">{esc(n)}</span>{esc(d["latin"][str(n)]) if str(n) in d["latin"] else "<i>The Latin page gives no text under this number.</i>"}</p>' for n in ds)
+            lc = [c for c in d['latin_checked'] if set(map(str, ds)) <= set(map(str, c['ds']))]
+            status = (f'Proofread against {esc(lc[0]["against"])} ({esc(lc[0]["date"])}).' if lc else
+                      'Not yet proofread: as the source page gives it.')
+            parts.append(f'<details class="latin"><summary>Latin text · DS {esc(ds_range(ds))}</summary><div lang="la">{lat}</div><p class="lstat">{status}</p></details>\n')
+        if hk is not None:
+            w = weights[hk]
+            rng = f' ({esc(n_label(w["from"]))}–{esc(disp_id(w["to"]))})' if w['to'] != w['from'] else ''
+            parts.append(f'<p class="curnote"><b>Editorial assessment · {esc(GRADE_LABEL[w["g"]][0])}{rng}.</b> {static_text(w["n"], by_id, by_base)}</p>\n')
+        record = source_records[d['library']['entryMap'][eid]]
+        parts.append(f'<p class="rel">Source and coverage: <a href="../../#source-{esc(record["id"])}">{esc(record["title"])}</a> · {esc(record["coverage"])} locally. Passage grades are editorial assessments.</p>\n')
+        if record.get('papalDefinition'):
+            classification = record['papalDefinition']
+            parts.append(f'<p class="rel"><a href="../../#weight-papal-def">Papal definition collection</a> · {esc(classification["label"])}</p>\n')
+        for link in record['sourceLinks']:
+            parts.append(f'<p class="rel"><a href="{esc(link["url"])}" rel="noopener">{esc(link["label"])} ↗</a> ({esc(link["language"])})</p>\n')
+        for relation in d['relations']:
+            if eid not in (relation['from'], relation['to']):
+                continue
+            a, b = relation['from'], relation['to']
+            parts.append(f'<details><summary>Editorial relationship: <a href="../../n/{enc_id(a)}/">{esc(n_label(a))}</a> {esc(relation["kind"])} <a href="../../n/{enc_id(b)}/">{esc(n_label(b))}</a></summary><p>{esc(relation["note"])}</p>')
+            for evidence in relation['evidence']:
+                parts.append(f'<blockquote>{esc(evidence["quote"])}</blockquote><p>{esc(n_label(evidence["entry"]))}</p>')
+            parts.append('</details>')
+        if e.get('links'):
+            parts.append('<p class="rel">Full text: ' + ' · '.join(f'<a href="{esc(l["url"])}" rel="noopener">{esc(l["label"])} ↗</a>' for l in e['links']) + '</p>\n')
+        rel = []
+        if derived['cites'].get(eid):
+            rel.append('<div><b>Refers to</b> ' + ', '.join(f'<a href="../{esc(enc_id(t))}/">{esc(n_label(t))}</a>' for t in derived['cites'][eid]) + '</div>')
+        if derived['cited'].get(eid):
+            rel.append('<div><b>Cited by</b> ' + ', '.join(f'<a href="../{esc(enc_id(t))}/">{esc(n_label(t))}</a>' for t in derived['cited'][eid]) + '</div>')
+        if derived['rc'].get(eid):
+            rel.append('<div><b>Roman Catechism</b> ' + ', '.join(f'<a href="../../#rc-{c}">{esc(ch_by[c][0]["title"].split(".")[0])}, {esc(ch_by[c][1]["title"])}</a>' for c in derived['rc'][eid]) + '</div>')
+        if disc.get(eid):
+            rel.append('<div><b>Discussed in</b> ' + ', '.join(f'<a href="../../{h}">{esc(t)}</a>' for h, t in disc[eid]) + '</div>')
+        if rel:
+            parts.append('<div class="rel">' + ''.join(rel) + '</div>\n')
+        prev_e, next_e = (E[k - 1] if k else None), (E[k + 1] if k + 1 < len(E) else None)
+        nav = []
+        nav.append(f'<a href="../{esc(enc_id(prev_e["id"]))}/" rel="prev"><small>Previous</small>{esc(n_label(prev_e["id"]))}</a>' if prev_e else '<span></span>')
+        nav.append(f'<a class="next" href="../{esc(enc_id(next_e["id"]))}/" rel="next"><small>Next</small>{esc(n_label(next_e["id"]))}</a>' if next_e else '<span></span>')
+        parts.append(f'<nav class="pager">{"".join(nav)}</nav>\n')
+        parts.append('<p class="colophon">Text: Denzinger, <i>Enchiridion Symbolorum</i>, in the English translation with the older numbering, '
+                     'as published on patristica.net. Weights and cross-references are a reading aid made for this site, not an official classification. '
+                     '<a href="../../#edition">About this edition</a></p>\n</main>\n'
+                     '<script>if("serviceWorker" in navigator)navigator.serviceWorker.register("../../sw.js").catch(function(){});</script>\n'
+                     '</body>\n</html>\n')
+        dest = os.path.join(out, 'n', enc_id(eid))
+        os.makedirs(dest, exist_ok=True)
+        with open(os.path.join(dest, 'index.html'), 'w', encoding='utf-8') as f:
+            f.write(''.join(parts))
+        urls.append(page_url)
+    return urls
+
+
+# --------------------------------------------------------------------------- icons (PNG without any library)
+def png(size, path):
+    """A red rounded square with a white 'D', drawn pixel by pixel."""
+    red, white = (161, 31, 29), (255, 255, 255)
+    rows = []
+    r = size * 0.19
+    for y in range(size):
+        row = bytearray([0])
+        for x in range(size):
+            # rounded corners (transparent outside)
+            cx = min(max(x + .5, r), size - r)
+            cy = min(max(y + .5, r), size - r)
+            inside = (x + .5 - cx) ** 2 + (y + .5 - cy) ** 2 <= r * r
+            if not inside:
+                row += bytes((0, 0, 0, 0))
+                continue
+            u, v = (x + .5) / size, (y + .5) / size
+            # the letter D: a stem and a half-ring
+            stem = .30 <= u <= .41 and .22 <= v <= .78
+            dx, dy = (u - .43) / .30, (v - .5) / .28
+            ring = u >= .41 and dx * dx + dy * dy <= 1 and ((u - .43) / .19) ** 2 + ((v - .5) / .17) ** 2 >= 1
+            bar = .41 <= u <= .46 and (.22 <= v <= .33 or .67 <= v <= .78)
+            c = white if (stem or ring or bar) else red
+            row += bytes(c) + b'\xff'
+        rows.append(bytes(row))
+    raw = zlib.compress(b''.join(rows), 9)
+
+    def chunk(t, data):
+        return struct.pack('>I', len(data)) + t + data + struct.pack('>I', zlib.crc32(t + data) & 0xffffffff)
+    with open(path, 'wb') as f:
+        f.write(b'\x89PNG\r\n\x1a\n' + chunk(b'IHDR', struct.pack('>IIBBBBB', size, size, 8, 6, 0, 0, 0))
+                + chunk(b'IDAT', raw) + chunk(b'IEND', b''))
+
+
+# --------------------------------------------------------------------------- open data
+def open_data(d, raw, derived, out, url, built):
+    dd = os.path.join(out, 'data')
+    os.makedirs(dd, exist_ok=True)
+    E, eras = d['entries'], d['eras']
+    papal_sources = {r['id']: r['papalDefinition'] for r in d['library']['records'] if r.get('papalDefinition')}
+    rows = []
+    for k, e in enumerate(E):
+        y = raw['entries'][k][6]['y']
+        hk = derived['h'][k]
+        o = {'id': e['id'], 'ds': e.get('ds', []), 'dsMatch': e.get('dsHow', 'printed' if e.get('ds') else None),
+             'era': eras[e['era']]['name'], 'eraDates': eras[e['era']]['dates'], 'year': abs(y), 'yearExact': y > 0,
+             'session': e.get('session'), 'topic': e.get('topic'), 'source': e.get('source'), 'text': e['text'],
+             'neunerDupuis': e.get('nd', []),
+             'documentId': d['library']['entryMap'][e['id']],
+             'gradeNote': d['weights'][hk]['n'] if hk is not None else None,
+             'gradeStatus': 'editorial assessment' if hk is not None else 'genre label only',
+             'weight': 'papal-teaching' if e['weight'] == 'papal' else e['weight'],
+             'grade': d['weights'][hk]['g'] if hk is not None else None,
+             'kinds': e.get('kinds', []), 'supplement': bool(e.get('supplement')),
+             'refersTo': derived['cites'].get(e['id'], []), 'citedBy': derived['cited'].get(e['id'], []),
+             'romanCatechism': derived['rc'].get(e['id'], []),
+             'url': f'{url}n/{enc_id(e["id"])}/' if url else None}
+        if o['documentId'] in papal_sources:
+            o['papalDefinition'] = papal_sources[o['documentId']]
+        if 'censure' in e:
+            o['censure'] = d['censures'][e['censure']]['w']
+        rows.append(o)
+    with open(os.path.join(dd, 'entries.json'), 'w', encoding='utf-8') as f:
+        f.write('[\n' + ',\n'.join(json.dumps(o, ensure_ascii=False) for o in rows) + '\n]\n')
+    with open(os.path.join(dd, 'crosswalk.csv'), 'w', encoding='utf-8', newline='') as f:
+        w = csv.writer(f)
+        w.writerow(['old_number', 'ds_number', 'match'])
+        for e in E:
+            if e.get('supplement'):
+                continue
+            for n in e.get('ds', []) or ['']:
+                w.writerow([e['id'], n, e.get('dsHow', 'printed') if n else 'none'])
+    with open(os.path.join(dd, 'weights.csv'), 'w', encoding='utf-8', newline='') as f:
+        w = csv.writer(f)
+        w.writerow(['from', 'to', 'grade', 'note'])
+        for x in d['weights']:
+            w.writerow([x['from'], x['to'], x['g'], x['n']])
+    shutil.copy(os.path.join(DATA, 'latin.json'), os.path.join(dd, 'latin.json'))
+    cat = json.loads(json.dumps(d['catechism']))
+    with open(os.path.join(dd, 'roman-catechism.json'), 'w', encoding='utf-8') as f:
+        json.dump(cat, f, ensure_ascii=False, indent=1)
+    guides = {'since1950': d['since'], 'disputed': d['disputed'], 'threads': d['threads'], 'hermeneutics': d['herm'], 'relationships': d['relations'], 'roadmap': d['roadmap']}
+    with open(os.path.join(dd, 'continuity.json'), 'w', encoding='utf-8') as f:
+        json.dump(compact_continuity(d), f, ensure_ascii=False, indent=1)
+    with open(os.path.join(dd, 'continuity-audio.md'), 'w', encoding='utf-8') as f:
+        f.write(audio_script(d['continuity'], url or './'))
+    if os.path.exists(SEALED_FILE):  # published only encrypted; opened with a password in the reader
+        shutil.copy(SEALED_FILE, os.path.join(dd, 'sealed.json'))
+    with open(os.path.join(dd, 'guides.json'), 'w', encoding='utf-8') as f:
+        json.dump(guides, f, ensure_ascii=False, indent=1)
+    with open(os.path.join(dd, 'documents.json'), 'w', encoding='utf-8') as f:
+        json.dump(d['library'], f, ensure_ascii=False, indent=1)
+    with open(os.path.join(dd, 'coverage.csv'), 'w', encoding='utf-8', newline='') as f:
+        writer = csv.writer(f)
+        writer.writerow(['id', 'title', 'issuer', 'year', 'year_exact', 'genre', 'collection', 'local_coverage', 'entry_count', 'entries', 'grouping', 'review_status', 'translation', 'text_verification', 'rights', 'source_urls'])
+        for r in d['library']['records']:
+            writer.writerow([r['id'], r['title'], r['issuer'], r['year'], r['yearExact'], r['genre'], r['collection'], r['coverage'], len(r['entryIds']), ' '.join(r['entryIds']), r['grouping'], r['review']['status'], r['translation'], r['textVerification'], r['rights'], ' '.join(l['url'] for l in r['sourceLinks'])])
+    files = [
+        ('coverage.csv', 'Source inventory as a spreadsheet, including coverage and provenance.'),
+        ('documents.json', 'Source inventory: local coverage, external full texts, provenance and review status. Inferred groups require review.'),
+        ('entries.json', 'Every entry with its text, DS numbers, era, year, weight, hand-checked grade, censure, cross-references and Roman Catechism chapters.'),
+        ('crosswalk.csv', 'Old number, DS number and how the pair was matched (printed, series = inferred, checked = by hand, none).'),
+        ('weights.csv', 'The hand-checked weight ranges with the note on each.'),
+        ('latin.json', 'The Latin text by DS number, as the source page gives it (not proofread).'),
+        ('roman-catechism.json', 'The chapters of the Roman Catechism with the entries matched to each.'),
+        ('guides.json', 'Since 1950, the disputed questions, the doctrinal threads and the principles of hermeneutics.'),
+        ('continuity.json', 'The hermeneutic of ecclesial continuity: principles P1-P8 and the 24 research cases with propositions, comparisons, verdicts and evidence gaps. A research layer, not Church teaching.'),
+        ('continuity-audio.md', 'Listening scripts for the 24 cases: what was taught, by what authority, what is permanent and what was a determination for its time.'),
+        ('sealed.json', 'Untested research on Constance, Basel and Vatican I, encrypted (AES-256-GCM, key from a password by PBKDF2-SHA-256). It opens with a password in the reader.'),
+    ]
+    with open(os.path.join(dd, 'index.json'), 'w', encoding='utf-8') as f:
+        json.dump({'built': built, 'files': [{'file': a, 'url': f'{url}data/{a}' if url else f'data/{a}', 'about': b} for a, b in files]},
+                  f, ensure_ascii=False, indent=1)
+    return files
+
+
+# --------------------------------------------------------------------------- service worker, manifest, misc
+def write(path, text):
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    with open(path, 'w', encoding='utf-8') as f:
+        f.write(text)
+
+
+def atom(changes, url):
+    """An Atom feed of what has been added, from changes.json."""
+    def x(t):
+        return html.escape(str(t), quote=False)
+    items = sorted(changes, key=lambda c: c['date'], reverse=True)
+    out = ['<?xml version="1.0" encoding="utf-8"?>', '<feed xmlns="http://www.w3.org/2005/Atom">',
+           f'<title>{x(TITLE)}: additions</title>', f'<subtitle>{x(DESC)}</subtitle>',
+           f'<link href="{x(url)}"/>', f'<link rel="self" href="{x(url)}feed.xml"/>', f'<id>{x(url)}</id>',
+           f'<updated>{items[0]["date"]}T00:00:00Z</updated>', f'<author><name>{x(TITLE)}</name></author>']
+    for i, c in enumerate(items):
+        link = url + c['href'] if c['href'] != '#home' else url
+        out += ['<entry>', f'<title>{x(c["title"])}</title>', f'<link href="{x(link)}"/>',
+                f'<id>{x(url)}changes/{c["date"]}/{len(items) - i}</id>', f'<updated>{c["date"]}T00:00:00Z</updated>',
+                f'<summary>{x(c["summary"])}</summary>', '</entry>']
+    return '\n'.join(out + ['</feed>', ''])
+
+
+def pages_build(args):
+    d = load_all()
+    order, P = check(d)
+    if P:
+        print('The data has problems; nothing was built:\n  ' + '\n  '.join(P), file=sys.stderr)
+        sys.exit(1)
+    W = warnings(d, order)
+    if stale_note():
+        W.append(stale_note())
+    if W:
+        print(f'{len(W)} notes on the data (the build continues):\n  ' + '\n  '.join(W))
+        if args.strict:
+            sys.exit(1)
+    built = datetime.date.today().isoformat()
+    url = (args.url or '').strip()
+    if url in ('/', '//'):
+        url = ''
+    if url and not url.endswith('/'):
+        url += '/'
+    raw, derived = compact(d, order)
+    site = {'mode': 'pages', 'repo': args.repo or '', 'url': url, 'built': built}
+    if args.claude:
+        site = {'mode': 'claude', 'repo': args.repo or '', 'url': url, 'built': built}
+        page = f'<title>{FULL_TITLE}</title>\n' + FONTS + '\n' + reader_body(raw, d, site)
+        write(args.claude, page)
+        print('Claude page:', args.claude, f'{len(page.encode()) // 1024} KB')
+        return
+    out = os.path.abspath(args.out)
+    if os.path.isdir(out):
+        shutil.rmtree(out)
+    os.makedirs(out)
+    head_extra, body, assets = reader_split(raw, d, site, out)
+    ld = {'@context': 'https://schema.org', '@type': 'WebSite', 'name': TITLE, 'alternateName': SUBTITLE, 'description': DESC, 'url': url, 'inLanguage': 'en',
+          'potentialAction': {'@type': 'SearchAction', 'target': url + '?q={search_term_string}', 'query-input': 'required name=search_term_string'}}
+    if url:
+        head_extra += f'<script type="application/ld+json">{dump(ld)}</script>\n'
+        head_extra += f'<link rel="alternate" type="application/atom+xml" title="{TITLE}: additions" href="{url}feed.xml">\n'
+    index = head(FULL_TITLE, DESC, url, '', head_extra, url) + body + '</body>\n</html>\n'
+    write(os.path.join(out, 'index.html'), index)
+    write(os.path.join(out, 'assets', 'entry.css'), read_src('entry.css'))
+    shutil.copy(os.path.join(SRC, 'og.png'), os.path.join(out, OG_IMAGE))
+    urls = entry_pages(d, raw, derived, out, url)
+    nshort = short_links(d, out, url)
+    files = open_data(d, raw, derived, out, url, built)
+    os.makedirs(os.path.join(out, 'icons'), exist_ok=True)
+    for s in (180, 192, 512):
+        png(s, os.path.join(out, 'icons', f'icon-{s}.png'))
+    write(os.path.join(out, 'manifest.webmanifest'), json.dumps({
+        'name': TITLE, 'short_name': 'Denzinger', 'description': DESC, 'start_url': './', 'scope': './',
+        'display': 'standalone', 'background_color': '#f4f5f6', 'theme_color': '#a11f1d',
+        'icons': [{'src': 'icons/icon-192.png', 'sizes': '192x192', 'type': 'image/png'},
+                  {'src': 'icons/icon-512.png', 'sizes': '512x512', 'type': 'image/png'},
+                  {'src': 'icons/icon-512.png', 'sizes': '512x512', 'type': 'image/png', 'purpose': 'maskable'}]}, indent=1))
+    version = f'{built}-{zlib.crc32((index + "".join(assets)).encode()) & 0xffffffff:08x}'
+    write(os.path.join(out, 'sw.js'), read_src('sw.js').replace('__VERSION__', version).replace("'__ASSETS__'", ', '.join(json.dumps(a) for a in assets)))
+    write(os.path.join(out, '.nojekyll'), '')
+    write(os.path.join(out, 'llms.txt'), LLMS.replace('{herm}', '\n'.join('- ' + p['rule'] for p in d['herm']['principles'])).replace('{url}', url or './')
+          + '\n' + llms_section(d['continuity'], url or './'))
+    if url:
+        write(os.path.join(out, 'feed.xml'), atom(d['changes'], url))
+    write(os.path.join(out, 'robots.txt'), 'User-agent: *\nAllow: /\n' + (f'Sitemap: {url}sitemap.xml\n' if url else ''))
+    if url:
+        sm = ['<?xml version="1.0" encoding="UTF-8"?>', '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">',
+              f'<url><loc>{esc(url)}</loc><lastmod>{built}</lastmod></url>']
+        sm += [f'<url><loc>{esc(u)}</loc></url>' for u in urls]
+        write(os.path.join(out, 'sitemap.xml'), '\n'.join(sm + ['</urlset>', '']))
+    write(os.path.join(out, '404.html'), head('Page not found · ' + TITLE, DESC, '', './') +
+          '<script>(function(){var m=location.pathname.match(/\\/n\\/([^/]+)\\/?$/);'
+          'var base=location.pathname.replace(/\\/n\\/[^/]*\\/?$/,"/").replace(/[^/]*$/,"");'
+          'location.replace(base+(m?"#n"+decodeURIComponent(m[1]).replace(/_s/g,"*"):""));})();</script>'
+          '<p style="font-family:sans-serif;padding:2rem">Page not found. <a href="./">Open the reader</a>.</p></body></html>\n')
+    size = sum(os.path.getsize(os.path.join(a, f)) for a, _, fs in os.walk(out) for f in fs)
+    print(f'Built {len(urls)} entry pages, {nshort} short links, {len(files)} data files; {size / 1e6:.1f} MB in {out}')
+
+
+if __name__ == '__main__':
+    ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    ap.add_argument('--repo', default=None)
+    ap.add_argument('--url', default=None)
+    ap.add_argument('--out', default=os.path.join(ROOT, 'dist'))
+    ap.add_argument('--strict', action='store_true', help='stop on any note as well as on problems')
+    ap.add_argument('--claude', default=None, metavar='FILE', help='write the single-page version for Claude instead')
+    a = ap.parse_args()
+    cfg_path = os.path.join(ROOT, 'site.json')
+    if os.path.exists(cfg_path):
+        cfg = json.load(open(cfg_path))
+        a.repo = a.repo or cfg.get('repo') or None
+        a.url = a.url or cfg.get('url') or None
+    pages_build(a)
